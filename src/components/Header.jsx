@@ -5,7 +5,7 @@ import { IoSettings } from "react-icons/io5";
 function Header() {
   return (
     <>
-    <div className='flex items-center justify-between w-full border px-4 py-2'>
+    <div className='flex items-center justify-between w-full rounded shadow px-4 py-2'>
         <div className='flex flex-block items-center gap-2'>
             <img src="IDE-LOGO.png" alt="" width={'200px'} height={'50px'} />
             <h1 className='text-lg  px-2 py-1 rounded-md shadow hover:bg-black hover:text-white'>Dashboard</h1>
