@@ -28,6 +28,11 @@ function WorkSpaceHeader() {
                     </div>
                 </div>
             </div>
+              <div className='grid grid-cols-2'>
+                    <div className=''>
+                        <h1>html</h1>
+                    </div>
+                </div>
         </>
     )
 }
