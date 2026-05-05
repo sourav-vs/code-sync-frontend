@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import Home from './pages/Home'
 import { Route, Routes } from 'react-router-dom'
-import WorkSpace from './pages/workSpace'
+import WorkSpace from './pages/WorkSpace'
 
 
 function App() {
@@ -11,7 +11,7 @@ function App() {
     <>
       <Routes>
         <Route path='/' element={<Home />} />
-        <Route path='/workspace' element={<WorkSpace />} />
+        <Route path='/WorkSpace' element={<WorkSpace />} />
       </Routes>
     </>
   )
