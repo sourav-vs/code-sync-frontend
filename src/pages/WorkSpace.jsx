@@ -3,9 +3,37 @@ import WorkSpaceHeader from '../components/WorkSpaceHeader'
 import { FaEye } from "react-icons/fa";
 import { TbReload } from "react-icons/tb";
 import { GoShare } from "react-icons/go";
+import { io } from "socket.io-client"
+import { useEffect } from 'react';
+import { baseUrl } from '../services/BaseURL';
 
 function WorkSpace() {
   const [activeTab, setActiveTab] = useState("html")
+  const [html, setHtml] = useState("")
+  const [css, setCss] = useState("")
+  const [js, setJs] = useState("")
+  const isEmpty = !html && !css && !js
+
+  useEffect(() => {
+    const socket = io(baseUrl)
+
+    return () => {
+      socket.disconnect()
+    }
+  }, [])
+
+
+  const srcDoc = `
+  <html>
+    <head>
+      <style>${css}</style>
+    </head>
+    <body>
+      ${html}
+      <script>${js}<\/script>
+    </body>
+  </html>
+`
 
   return (
     <>
@@ -19,8 +47,8 @@ function WorkSpace() {
             <button
               onClick={() => setActiveTab("html")}
               className={`pb-2 ${activeTab === "html"
-                  ? "border-b-2 border-black text-black"
-                  : "text-gray-400"
+                ? "border-b-2 border-black text-black"
+                : "text-gray-400"
                 }`}
             >
               HTML
@@ -29,8 +57,8 @@ function WorkSpace() {
             <button
               onClick={() => setActiveTab("css")}
               className={`pb-2 ${activeTab === "css"
-                  ? "border-b-2 border-black text-black"
-                  : "text-gray-400"
+                ? "border-b-2 border-black text-black"
+                : "text-gray-400"
                 }`}
             >
               CSS
@@ -39,8 +67,8 @@ function WorkSpace() {
             <button
               onClick={() => setActiveTab("js")}
               className={`pb-2 ${activeTab === "js"
-                  ? "border-b-2 border-black text-black"
-                  : "text-gray-400"
+                ? "border-b-2 border-black text-black"
+                : "text-gray-400"
                 }`}
             >
               JS
@@ -51,6 +79,19 @@ function WorkSpace() {
           <div className="h-[80%]">
             <textarea
               className="w-full h-full border border-gray-700 shadow-md rounded-md p-4 text-sm outline-none focus:ring-2 focus:ring-gray-600"
+
+              value={activeTab == "html" ? html : activeTab == "css" ? css : js}
+
+              onChange={(e) => {
+                const value = e.target.value
+                if (activeTab == "html") {
+                  setHtml(value)
+                } else if (activeTab == "css") {
+                  setCss(value)
+                } else {
+                  setJs(value)
+                }
+              }}
               placeholder={
                 activeTab === "html"
                   ? "Write HTML here..."
@@ -58,27 +99,40 @@ function WorkSpace() {
                     ? "Write CSS here..."
                     : "Write JavaScript here..."
               }
+
             />
           </div>
 
         </div>
         <div className='col-span-2'>
-  <div className='flex items-center justify-between p-4 border-gray-700'>
-    <div className='flex items-center gap-3 text-gray-600'>
-      <FaEye />
-      <h1>Live Preview</h1>
-    </div>
+          <div className='flex items-center justify-between p-4 border-gray-700'>
+            <div className='flex items-center gap-3 text-gray-600'>
+              <FaEye />
+              <h1>Live Preview</h1>
+            </div>
 
-    <div className='flex items-center gap-3 text-gray-400'>
-      <TbReload className="cursor-pointer hover:text-black" />
-      <GoShare className="cursor-pointer hover:text-black" />
-    </div>
-  </div>
+            <div className='flex items-center gap-3 text-gray-400'>
+              <TbReload className="cursor-pointer hover:text-black" />
+              <GoShare className="cursor-pointer hover:text-black" />
+            </div>
+          </div>
 
-  <div className='h-[80vh] mx-3 mt-1 border border-gray-700 rounded-md flex items-center justify-center bg-[#161b22]'>
-    <p className="text-gray-400">Live Preview Output</p>
-  </div>
-</div>
+          <div className='h-[80vh] mx-3 mt-1 border border-gray-700 rounded-md flex items-center justify-center bg-[#161b22]'>
+            {isEmpty ? (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-gray-400">Live Preview Output</p>
+              </div>
+            ) : (
+              <iframe
+                srcDoc={srcDoc}
+                title="preview"
+                sandbox="allow-scripts"
+                frameBorder="0"
+                className="w-full h-full bg-white rounded-md"
+              />
+            )}
+          </div>
+        </div>
       </div>
     </>
   )
