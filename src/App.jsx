@@ -11,7 +11,7 @@ function App() {
     <>
       <Routes>
         <Route path='/' element={<Home />} />
-        <Route path='/WorkSpace' element={<WorkSpace />} />
+        <Route path='/workspace/:roomId' element={<WorkSpace />} />
       </Routes>
     </>
   )

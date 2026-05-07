@@ -6,6 +6,7 @@ import { GoShare } from "react-icons/go";
 import { io } from "socket.io-client"
 import { useEffect } from 'react';
 import { baseUrl } from '../services/BaseURL';
+import { useParams } from 'react-router-dom';
 
 function WorkSpace() {
   const [activeTab, setActiveTab] = useState("html")
@@ -34,6 +35,9 @@ function WorkSpace() {
     </body>
   </html>
 `
+  const { roomId } = useParams()
+
+  console.log(roomId)
 
   return (
     <>
