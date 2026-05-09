@@ -7,6 +7,7 @@ import { io } from "socket.io-client"
 import { useEffect } from 'react';
 import { baseUrl } from '../services/BaseURL';
 import { useParams } from 'react-router-dom';
+import { useRef } from "react"
 
 function WorkSpace() {
   const [activeTab, setActiveTab] = useState("html")
@@ -25,15 +26,29 @@ function WorkSpace() {
     setPreviewJs(js)
   }
 
-  useEffect(() => {
-    const socket = io(baseUrl)
+  const socketRef = useRef()
 
-    socket.emit("join-room", roomId)
+    const { roomId } = useParams()
+
+  console.log(roomId)
+
+  useEffect(() => {
+    socketRef.current = io(baseUrl)
+
+    socketRef.current.emit("join-room", roomId)
+    console.log(socketRef.current)
+
+    socketRef.current.on("receive-code", (data) => {
+      console.log("received code")
+      setHtml(data.html)
+      setCss(data.css)
+      setJs(data.js)
+    })
 
     return () => {
-      socket.disconnect()
+      socketRef.current.disconnect()
     }
-  }, [])
+  }, [roomId])
 
 
   const srcDoc = `
@@ -47,9 +62,7 @@ function WorkSpace() {
     </body>
   </html>
 `
-  const { roomId } = useParams()
 
-  console.log(roomId)
 
   return (
     <>
@@ -100,13 +113,30 @@ function WorkSpace() {
 
               onChange={(e) => {
                 const value = e.target.value
-                if (activeTab == "html") {
+
+                let updatedHtml = html
+                let updatedCss = css
+                let updatedJs = js
+
+                if (activeTab === "html") {
+                  updatedHtml = value
                   setHtml(value)
-                } else if (activeTab == "css") {
+                }
+                else if (activeTab === "css") {
+                  updatedCss = value
                   setCss(value)
-                } else {
+                }
+                else {
+                  updatedJs = value
                   setJs(value)
                 }
+                console.log("emitting code")
+                socketRef.current.emit("code-change", {
+                  roomId,
+                  html: updatedHtml,
+                  css: updatedCss,
+                  js: updatedJs
+                })
               }}
               placeholder={
                 activeTab === "html"
