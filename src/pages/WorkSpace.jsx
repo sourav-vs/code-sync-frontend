@@ -15,8 +15,20 @@ function WorkSpace() {
   const [js, setJs] = useState("")
   const isEmpty = !html && !css && !js
 
+  const [previewHtml, setPreviewHtml] = useState("")
+  const [previewCss, setPreviewCss] = useState("")
+  const [previewJs, setPreviewJs] = useState("")
+
+  const runCode = () => {
+    setPreviewHtml(html)
+    setPreviewCss(css)
+    setPreviewJs(js)
+  }
+
   useEffect(() => {
     const socket = io(baseUrl)
+
+    socket.emit("join-room", roomId)
 
     return () => {
       socket.disconnect()
@@ -27,11 +39,11 @@ function WorkSpace() {
   const srcDoc = `
   <html>
     <head>
-      <style>${css}</style>
+      <style>${previewCss}</style>
     </head>
     <body>
-      ${html}
-      <script>${js}<\/script>
+      ${previewHtml}
+      <script>${previewJs}<\/script>
     </body>
   </html>
 `
@@ -116,7 +128,7 @@ function WorkSpace() {
             </div>
 
             <div className='flex items-center gap-3 text-gray-400'>
-              <TbReload className="cursor-pointer hover:text-black" />
+              <TbReload onClick={runCode} className="cursor-pointer hover:text-black" />
               <GoShare className="cursor-pointer hover:text-black" />
             </div>
           </div>
