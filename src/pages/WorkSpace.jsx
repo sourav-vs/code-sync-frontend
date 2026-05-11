@@ -34,23 +34,35 @@ function WorkSpace() {
 
   console.log(roomId)
 
-  useEffect(() => {
-    socketRef.current = io(baseUrl)
+useEffect(() => {
+
+  socketRef.current = io(baseUrl)
+
+  socketRef.current.on("connect", () => {
+
+    console.log("socket connected")
 
     socketRef.current.emit("join-room", roomId)
-    console.log(socketRef.current)
 
-    socketRef.current.on("receive-code", (data) => {
-      console.log("received code")
-      setHtml(data.html)
-      setCss(data.css)
-      setJs(data.js)
-    })
+  })
 
-    return () => {
-      socketRef.current.disconnect()
-    }
-  }, [roomId])
+  socketRef.current.on("receive-code", (data) => {
+
+    console.log("received code")
+
+    setHtml(data.html)
+    setCss(data.css)
+    setJs(data.js)
+
+  })
+
+  return () => {
+
+    socketRef.current.disconnect()
+
+  }
+
+}, [roomId])
 
 
   const srcDoc = `
@@ -151,7 +163,7 @@ function WorkSpace() {
             />
           </div>
 
-          <Chat/>
+          <Chat socketRef={socketRef} roomId={roomId}/>
         
 
         </div>
