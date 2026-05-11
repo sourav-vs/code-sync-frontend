@@ -8,6 +8,8 @@ import { useEffect } from 'react';
 import { baseUrl } from '../services/BaseURL';
 import { useParams } from 'react-router-dom';
 import { useRef } from "react"
+import Chat from '../components/chat';
+
 
 function WorkSpace() {
   const [activeTab, setActiveTab] = useState("html")
@@ -69,7 +71,7 @@ function WorkSpace() {
       <WorkSpaceHeader />
 
       <div className='grid grid-cols-5'>
-        <div className="col-span-3 min-h-[calc(100vh-60px)] text-black p-4">
+        <div className="col-span-3 h-[calc(100vh-60px)] flex flex-col text-black p-4">
 
           {/* Tabs */}
           <div className="flex gap-4 border-gray-700 mb-3">
@@ -105,7 +107,7 @@ function WorkSpace() {
           </div>
 
           {/* Editor */}
-          <div className="h-[80%]">
+          <div className="flex-1">
             <textarea
               className="w-full h-full border border-gray-700 shadow-md rounded-md p-4 text-sm outline-none focus:ring-2 focus:ring-gray-600"
 
@@ -148,6 +150,9 @@ function WorkSpace() {
 
             />
           </div>
+
+          <Chat/>
+        
 
         </div>
         <div className='col-span-2'>
