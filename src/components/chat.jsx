@@ -2,37 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { IoChatbubbleEllipses } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
 
-function Chat({ socketRef, roomId }) {
+function Chat({ socketRef, roomId ,messageHistory,setMessageHistory}) {
 
     const [openChat, setOpenChat] = useState(false)
 
     const [message, setMessage] = useState("")
-    const [messageHistory, setMessageHistory] = useState([])
-    console.log(messageHistory);
 
-
-    useEffect(() => {
-
-        if (!socketRef?.current) return
-
-        const socket = socketRef.current
-
-        socket.on("receive-message", (data) => {
-
-            console.log("received", data)
-
-            setMessageHistory((prev) => [
-                ...prev,
-                data.message
-            ])
-
-        })
-
-        return () => {
-            socket.off("receive-message")
-        }
-
-    }, [socketRef])
 
 
     const sendMessage = () => {

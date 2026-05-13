@@ -22,6 +22,8 @@ function WorkSpace() {
   const [previewCss, setPreviewCss] = useState("")
   const [previewJs, setPreviewJs] = useState("")
 
+  const [messageHistory, setMessageHistory] = useState([])
+
   const runCode = () => {
     setPreviewHtml(html)
     setPreviewCss(css)
@@ -55,6 +57,17 @@ useEffect(() => {
     setJs(data.js)
 
   })
+
+  socketRef.current.on("receive-message", (data) => {
+
+  console.log("received in workspace", data)
+
+  setMessageHistory((prev) => [
+    ...prev,
+    data
+  ])
+
+})
 
   return () => {
 
@@ -163,7 +176,7 @@ useEffect(() => {
             />
           </div>
 
-          <Chat socketRef={socketRef} roomId={roomId}/>
+          <Chat socketRef={socketRef} roomId={roomId} messageHistory={messageHistory} setMessageHistory={setMessageHistory}/>
         
 
         </div>
