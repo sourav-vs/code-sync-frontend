@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { IoChatbubbleEllipses } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
 
-function Chat({ socketRef, roomId ,messageHistory,setMessageHistory}) {
+function Chat({ socketRef, roomId, messageHistory, setMessageHistory }) {
 
     const [openChat, setOpenChat] = useState(false)
 
@@ -57,10 +57,25 @@ function Chat({ socketRef, roomId ,messageHistory,setMessageHistory}) {
 
                         {messageHistory.map((msg, index) => (
 
-                            <div key={index} className="flex justify-start">
-                                <div className="bg-white text-black px-4 py-2 rounded-2xl max-w-[80%]">
-                                    {msg}
+                            <div
+                                key={index}
+                                className={`flex ${msg.sender === socketRef.current.id
+                                        ? "justify-end"
+                                        : "justify-start"
+                                    }`}
+                            >
+
+                                <div
+                                    className={`px-4 py-2 rounded-2xl max-w-[80%] ${msg.sender === socketRef.current.id
+                                            ? "bg-gray-500 text-white"
+                                            : "bg-white text-black"
+                                        }`}
+                                >
+
+                                    {msg.message}
+
                                 </div>
+
                             </div>
 
                         ))}
