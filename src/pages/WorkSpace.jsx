@@ -6,9 +6,10 @@ import { GoShare } from "react-icons/go";
 import { io } from "socket.io-client"
 import { useEffect } from 'react';
 import { baseUrl } from '../services/BaseURL';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useRef } from "react"
 import Chat from '../components/chat';
+
 
 
 function WorkSpace() {
@@ -17,6 +18,8 @@ function WorkSpace() {
   const [css, setCss] = useState("")
   const [js, setJs] = useState("")
   const isEmpty = !html && !css && !js
+
+  const navigate=useNavigate()
 
   const [previewHtml, setPreviewHtml] = useState("")
   const [previewCss, setPreviewCss] = useState("")
@@ -76,6 +79,16 @@ useEffect(() => {
   }
 
 }, [roomId])
+
+useEffect(() => {
+
+  const token = sessionStorage.getItem("token")
+
+  if (!token) {
+    navigate('/auth')
+  }
+
+}, [])
 
 
   const srcDoc = `

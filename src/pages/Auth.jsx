@@ -54,6 +54,7 @@ function Auth() {
 
           sessionStorage.setItem("token", result.data.token);
           sessionStorage.setItem("user", JSON.stringify(result.data.user));
+          sessionStorage.setItem("username",result.data.user.name)
 
           setTimeout(() => {
             navigate('/')

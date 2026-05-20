@@ -13,10 +13,12 @@ function Chat({ socketRef, roomId, messageHistory, setMessageHistory }) {
     const sendMessage = () => {
 
         if (!message.trim()) return
+        const username=sessionStorage.getItem("username")
         console.log("sending message")
         socketRef.current.emit("send-message", {
             roomId,
-            message
+            message,
+            username
         })
 
         setMessage("")
@@ -71,8 +73,8 @@ function Chat({ socketRef, roomId, messageHistory, setMessageHistory }) {
                                             : "bg-white text-black"
                                         }`}
                                 >
-
-                                    {msg.message}
+                                    <h1>{msg.username}</h1>
+                                    <p>{msg.message}</p>
 
                                 </div>
 

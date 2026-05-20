@@ -16,6 +16,19 @@ function Home() {
     // navigate(`/workspace/${roomId}`)
   }
 
+  const handleWorkspace = (roomId) => {
+
+   const token = sessionStorage.getItem("token")
+
+   if(token){
+      navigate(`/workspace/${roomId}`)
+   }
+   else{
+      navigate('/auth')
+   }
+
+}
+
   return (
     <>
       <Header />
@@ -27,9 +40,8 @@ function Home() {
         <div className='mt-5 pt-5 text-center p-8 rounded shadow-md'>
           <input type="text" placeholder='Enter room id' className='w-80 rounded bg-gray-300 p-3 my-2' /><br />
           <div className='flex justify-center gap-3'>
-            <Link to={'/auth'}>
-              <button className='btn border px-2 py-2 rounded-md text-white bg-black'>Enter WorkSpace</button>
-            </Link>
+            
+              <button onClick={handleWorkspace} className='btn border px-2 py-2 rounded-md text-white bg-black'>Enter WorkSpace</button>
             <button onClick={createRoom} className='btn border px-2 py-2 rounded-md text-white bg-black'>Create Room</button>
           </div>
         </div>
