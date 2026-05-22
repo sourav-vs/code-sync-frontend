@@ -13,7 +13,7 @@ function Chat({ socketRef, roomId, messageHistory, setMessageHistory }) {
     const sendMessage = () => {
 
         if (!message.trim()) return
-        const username=sessionStorage.getItem("username")
+        const username=localStorage.getItem("username")
         console.log("sending message")
         socketRef.current.emit("send-message", {
             roomId,

@@ -52,9 +52,9 @@ function Auth() {
         if (result.status === 200) {
           toast.success("Login Successful");
 
-          sessionStorage.setItem("token", result.data.token);
-          sessionStorage.setItem("user", JSON.stringify(result.data.user));
-          sessionStorage.setItem("username",result.data.user.name)
+          localStorage.setItem("token", result.data.token);
+          localStorage.setItem("user", JSON.stringify(result.data.user));
+          localStorage.setItem("username",result.data.user.name)
 
           setTimeout(() => {
             navigate('/')

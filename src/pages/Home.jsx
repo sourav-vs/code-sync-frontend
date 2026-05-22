@@ -7,27 +7,48 @@ import { IoIosChatboxes } from "react-icons/io";
 import { IoIosCheckmarkCircle } from "react-icons/io";
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom'
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import { useState } from 'react';
 
 function Home() {
   const navigate = useNavigate()
-  const createRoom = () => {
-    const roomId = Math.random().toString(36).substring(2, 8)
+  const [roomId, setRoomId] = useState("")
 
-    // navigate(`/workspace/${roomId}`)
+  const handleCreateRoom = () => {
+
+    const token = localStorage.getItem("token")
+
+    if (token) {
+
+      const roomId = crypto.randomUUID()
+
+      navigate(`/workspace/${roomId}`)
+
+    } else {
+
+      navigate('/auth')
+
+    }
+
   }
 
-  const handleWorkspace = (roomId) => {
 
-   const token = sessionStorage.getItem("token")
+  const handleJoinRoom = () => {
 
-   if(token){
-      navigate(`/workspace/${roomId}`)
-   }
-   else{
+    const token = localStorage.getItem("token")
+
+    if (!token) {
       navigate('/auth')
-   }
+      return
+    }
 
-}
+    if (!roomId.trim()) {
+      toast.warning("Please enter room ID")
+      return
+    }
+
+    navigate(`/workspace/${roomId}`)
+  }
 
   return (
     <>
@@ -38,11 +59,11 @@ function Home() {
         <h1 className='mt-2 text-lg'>The ultimate collaborative playground for developers.Sync,preview,and deploy in one immersive workspace</h1>
 
         <div className='mt-5 pt-5 text-center p-8 rounded shadow-md'>
-          <input type="text" placeholder='Enter room id' className='w-80 rounded bg-gray-300 p-3 my-2' /><br />
+          <input value={roomId} onChange={(e) => setRoomId(e.target.value)} type="text" placeholder='Enter room id' className='w-80 rounded bg-gray-300 p-3 my-2' /><br />
           <div className='flex justify-center gap-3'>
-            
-              <button onClick={handleWorkspace} className='btn border px-2 py-2 rounded-md text-white bg-black'>Enter WorkSpace</button>
-            <button onClick={createRoom} className='btn border px-2 py-2 rounded-md text-white bg-black'>Create Room</button>
+
+            <button onClick={handleJoinRoom} className='btn border px-2 py-2 rounded-md text-white bg-black'>Enter WorkSpace</button>
+            <button onClick={handleCreateRoom} className='btn border px-2 py-2 rounded-md text-white bg-black'>Create Room</button>
           </div>
         </div>
 
@@ -90,6 +111,19 @@ function Home() {
         </div>
       </div>
       <Footer />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
     </>
   )
 }
