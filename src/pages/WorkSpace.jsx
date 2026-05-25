@@ -19,13 +19,15 @@ function WorkSpace() {
   const [js, setJs] = useState("")
   const isEmpty = !html && !css && !js
 
-  const navigate=useNavigate()
+  const navigate = useNavigate()
 
   const [previewHtml, setPreviewHtml] = useState("")
   const [previewCss, setPreviewCss] = useState("")
   const [previewJs, setPreviewJs] = useState("")
 
   const [messageHistory, setMessageHistory] = useState([])
+
+  const [onlineUsers, setOnlineUsers] = useState([])
 
   const runCode = () => {
     setPreviewHtml(html)
@@ -35,60 +37,76 @@ function WorkSpace() {
 
   const socketRef = useRef()
 
-    const { roomId } = useParams()
+  const { roomId } = useParams()
 
   console.log(roomId)
 
-useEffect(() => {
+  useEffect(() => {
 
-  socketRef.current = io(baseUrl)
+    socketRef.current = io(baseUrl)
 
-  socketRef.current.on("connect", () => {
+    socketRef.current.on("connect", () => {
 
-    console.log("socket connected")
+      console.log("socket connected")
 
-    socketRef.current.emit("join-room", roomId)
+      const username = localStorage.getItem("username")
 
-  })
+      socketRef.current.emit("join-room", {
+        roomId,
+        username
+      })
 
-  socketRef.current.on("receive-code", (data) => {
+    })
 
-    console.log("received code")
+        socketRef.current.on(
+      "online-users",
+      (users) => {
 
-    setHtml(data.html)
-    setCss(data.css)
-    setJs(data.js)
+        setOnlineUsers(users)
 
-  })
+      }
+    )
 
-  socketRef.current.on("receive-message", (data) => {
+    socketRef.current.on("receive-code", (data) => {
 
-  console.log("received in workspace", data)
+      console.log("received code")
 
-  setMessageHistory((prev) => [
-    ...prev,
-    data
-  ])
+      setHtml(data.html)
+      setCss(data.css)
+      setJs(data.js)
 
-})
+    })
 
-  return () => {
+    socketRef.current.on("receive-message", (data) => {
 
-    socketRef.current.disconnect()
+      console.log("received in workspace", data)
 
-  }
+      setMessageHistory((prev) => [
+        ...prev,
+        data
+      ])
 
-}, [roomId])
+    })
 
-useEffect(() => {
+    return () => {
 
-  const token = localStorage.getItem("token")
+      socketRef.current.disconnect()
 
-  if (!token) {
-    navigate('/auth')
-  }
+    }
 
-}, [])
+
+
+  }, [roomId])
+
+  useEffect(() => {
+
+    const token = localStorage.getItem("token")
+
+    if (!token) {
+      navigate('/auth')
+    }
+
+  }, [])
 
 
   const srcDoc = `
@@ -106,7 +124,7 @@ useEffect(() => {
 
   return (
     <>
-      <WorkSpaceHeader />
+      <WorkSpaceHeader onlineUsers={onlineUsers}/>
 
       <div className='grid grid-cols-5'>
         <div className="col-span-3 h-[calc(100vh-60px)] flex flex-col text-black p-4">
@@ -189,8 +207,8 @@ useEffect(() => {
             />
           </div>
 
-          <Chat socketRef={socketRef} roomId={roomId} messageHistory={messageHistory} setMessageHistory={setMessageHistory}/>
-        
+          <Chat socketRef={socketRef} roomId={roomId} messageHistory={messageHistory} setMessageHistory={setMessageHistory} />
+
 
         </div>
         <div className='col-span-2'>

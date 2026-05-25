@@ -9,7 +9,7 @@ import { toast, ToastContainer, Bounce } from 'react-toastify';
 
 
 
-function WorkSpaceHeader() {
+function WorkSpaceHeader({ onlineUsers }) {
 
     const navigate = useNavigate()
     const username = localStorage.getItem("username")
@@ -52,6 +52,10 @@ function WorkSpaceHeader() {
                     </div>
                 </div>
                 <div className='relative flex flex-block items-center gap-4 px-5'>
+
+                    <h1>
+                        🟢 {onlineUsers.length} Online
+                    </h1>
 
                     <button onClick={() => setDropDown(!dropDown)}>
                         {
