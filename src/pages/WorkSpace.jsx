@@ -6,7 +6,7 @@ import { GoShare } from "react-icons/go";
 import { io } from "socket.io-client"
 import { useEffect } from 'react';
 import { baseUrl } from '../services/BaseURL';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useRef } from "react"
 import Chat from '../components/chat';
 
@@ -20,6 +20,7 @@ function WorkSpace() {
   const isEmpty = !html && !css && !js
 
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [previewHtml, setPreviewHtml] = useState("")
   const [previewCss, setPreviewCss] = useState("")
@@ -58,7 +59,7 @@ function WorkSpace() {
 
     })
 
-        socketRef.current.on(
+    socketRef.current.on(
       "online-users",
       (users) => {
 
@@ -100,13 +101,20 @@ function WorkSpace() {
 
   useEffect(() => {
 
-    const token = localStorage.getItem("token")
+    const token =
+      localStorage.getItem("token")
 
     if (!token) {
-      navigate('/auth')
+
+      navigate('/auth', {
+        state: {
+          from: location.pathname
+        }
+      })
+
     }
 
-  }, [])
+  }, [navigate, location])
 
 
   const srcDoc = `
@@ -124,7 +132,7 @@ function WorkSpace() {
 
   return (
     <>
-      <WorkSpaceHeader onlineUsers={onlineUsers}/>
+      <WorkSpaceHeader onlineUsers={onlineUsers} />
 
       <div className='grid grid-cols-5'>
         <div className="col-span-3 h-[calc(100vh-60px)] flex flex-col text-black p-4">

@@ -9,10 +9,13 @@ import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom'
 import { ToastContainer, toast, Bounce } from 'react-toastify';
 import { useState } from 'react';
+import { useEffect } from 'react';
+
 
 function Home() {
   const navigate = useNavigate()
   const [roomId, setRoomId] = useState("")
+
 
   const handleCreateRoom = () => {
 
@@ -37,10 +40,10 @@ function Home() {
 
     const token = localStorage.getItem("token")
 
-    if (!token) {
-      navigate('/auth')
-      return
-    }
+    // if (!token) {
+    //   navigate('/auth')
+    //   return
+    // }
 
     if (!roomId.trim()) {
       toast.warning("Please enter room ID")

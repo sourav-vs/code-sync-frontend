@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { loginAPI, registerAPI } from '../services/allAPI'
 import { toast, ToastContainer } from 'react-toastify'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 
 
 function Auth() {
@@ -9,6 +10,8 @@ function Auth() {
   const [isLogin, setIsLogin] = useState(true)
   const [userDetails, setUserDetails] = useState({ name: "", email: "", password: "" })
   const navigate = useNavigate()
+  const location = useLocation()
+
 
   const handleRegister = async () => {
     const { name, email, password } = userDetails
@@ -54,10 +57,21 @@ function Auth() {
 
           localStorage.setItem("token", result.data.token);
           localStorage.setItem("user", JSON.stringify(result.data.user));
-          localStorage.setItem("username",result.data.user.name)
+          localStorage.setItem("username", result.data.user.name)
 
           setTimeout(() => {
-            navigate('/')
+            const redirectPath =
+              location.state?.from
+            if (redirectPath) {
+              navigate(redirectPath, {
+                replace: true
+              })
+            }
+            else {
+              navigate('/', {
+                replace: true
+              })
+            }
           }, 2000)
 
         }
