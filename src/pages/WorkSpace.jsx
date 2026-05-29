@@ -9,6 +9,7 @@ import { baseUrl } from '../services/BaseURL';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useRef } from "react"
 import Chat from '../components/chat';
+import { Bounce, toast, ToastContainer } from 'react-toastify';
 
 
 
@@ -44,19 +45,31 @@ function WorkSpace() {
 
   useEffect(() => {
 
+    const username = localStorage.getItem("username")
+    if (!username) return
     socketRef.current = io(baseUrl)
 
     socketRef.current.on("connect", () => {
 
       console.log("socket connected")
-
-      const username = localStorage.getItem("username")
-
       socketRef.current.emit("join-room", {
         roomId,
         username
       })
 
+    })
+
+    // joined user
+    socketRef.current.on("user-joined", (data) => {
+      if (data.username !== username) {
+        toast.dismiss()
+        toast.success(
+          `${data.username} joined the room`,
+          {
+            autoClose:3000
+          }
+        )
+      }
     })
 
     socketRef.current.on(
@@ -67,6 +80,19 @@ function WorkSpace() {
 
       }
     )
+
+    // leave user
+    socketRef.current.on("user-left", (data) => {
+      console.log("LEFT EVENT RECEIVED", data)
+      if (data.username !== username) {
+        toast.info(
+          `${data.username} left the room`,
+          {
+            autoClose:3000
+          }
+        )
+      }
+    })
 
     socketRef.current.on("receive-code", (data) => {
 
@@ -249,6 +275,18 @@ function WorkSpace() {
           </div>
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover={false}
+        theme="light"
+        transition={Bounce}
+      />
     </>
   )
 }
