@@ -114,7 +114,7 @@ function Home() {
         </div>
       </div>
       <Footer />
-      <ToastContainer
+      {/* <ToastContainer
         position="top-right"
         autoClose={5000}
         hideProgressBar={false}
@@ -126,7 +126,7 @@ function Home() {
         pauseOnHover
         theme="light"
         transition={Bounce}
-      />
+      /> */}
     </>
   )
 }

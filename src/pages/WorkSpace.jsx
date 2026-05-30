@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import WorkSpaceHeader from '../components/WorkSpaceHeader'
 import { FaEye } from "react-icons/fa";
 import { TbReload } from "react-icons/tb";
-import { GoShare } from "react-icons/go";
+import { IoIosSave } from "react-icons/io";
 import { io } from "socket.io-client"
 import { useEffect } from 'react';
 import { baseUrl } from '../services/BaseURL';
@@ -10,8 +10,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useRef } from "react"
 import Chat from '../components/chat';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
-
-
+import { getRoomCodeAPI, saveRoomCodeAPI } from '../services/allAPI';
 
 function WorkSpace() {
   const [activeTab, setActiveTab] = useState("html")
@@ -19,6 +18,7 @@ function WorkSpace() {
   const [css, setCss] = useState("")
   const [js, setJs] = useState("")
   const isEmpty = !html && !css && !js
+  const [isLoaded, setIsLoaded] = useState(false)
 
   const navigate = useNavigate()
   const location = useLocation()
@@ -61,12 +61,17 @@ function WorkSpace() {
 
     // joined user
     socketRef.current.on("user-joined", (data) => {
+      console.log(
+        "JOIN EVENT RECEIVED",
+        data.username,
+        username
+      )
+
       if (data.username !== username) {
-        toast.dismiss()
         toast.success(
           `${data.username} joined the room`,
           {
-            autoClose:3000
+            autoClose: 3000
           }
         )
       }
@@ -88,7 +93,7 @@ function WorkSpace() {
         toast.info(
           `${data.username} left the room`,
           {
-            autoClose:3000
+            autoClose: 3000
           }
         )
       }
@@ -116,7 +121,11 @@ function WorkSpace() {
     })
 
     return () => {
-
+      socketRef.current.off("user-joined")
+      socketRef.current.off("user-left")
+      socketRef.current.off("online-users")
+      socketRef.current.off("receive-code")
+      socketRef.current.off("receive-message")
       socketRef.current.disconnect()
 
     }
@@ -142,6 +151,43 @@ function WorkSpace() {
 
   }, [navigate, location])
 
+  useEffect(() => {
+    loadRoomCode()
+  }, [roomId])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isLoaded) return
+      saveCode()
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [html, css, js,isLoaded])
+
+  const loadRoomCode = async () => {
+    try {
+      const result =
+        await getRoomCodeAPI(roomId)
+      if (result.status === 200 && result.data) {
+        setHtml(result.data.html || "")
+        setCss(result.data.css || "")
+        setJs(result.data.js || "")
+      }
+      setIsLoaded(true)
+    }
+    catch (err) {
+      console.log(err)
+    }
+  }
+
+  const saveCode = async () => {
+    try {
+      await saveRoomCodeAPI({ roomId, html, css, js })
+      console.log("Code Saved")
+    }
+    catch (err) {
+      console.log(err)
+    }
+  }
 
   const srcDoc = `
   <html>
@@ -254,7 +300,7 @@ function WorkSpace() {
 
             <div className='flex items-center gap-3 text-gray-400'>
               <TbReload onClick={runCode} className="cursor-pointer hover:text-black" />
-              <GoShare className="cursor-pointer hover:text-black" />
+              <button onClick={saveCode}><IoIosSave className="cursor-pointer hover:text-black" /></button>
             </div>
           </div>
 
@@ -275,7 +321,7 @@ function WorkSpace() {
           </div>
         </div>
       </div>
-      <ToastContainer
+      {/* <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
@@ -286,7 +332,7 @@ function WorkSpace() {
         pauseOnHover={false}
         theme="light"
         transition={Bounce}
-      />
+      /> */}
     </>
   )
 }
