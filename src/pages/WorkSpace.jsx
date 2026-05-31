@@ -11,6 +11,7 @@ import { useRef } from "react"
 import Chat from '../components/chat';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import { getRoomCodeAPI, saveRoomCodeAPI } from '../services/allAPI';
+import AIAssistant from '../components/AIAssistant';
 
 function WorkSpace() {
   const [activeTab, setActiveTab] = useState("html")
@@ -30,6 +31,8 @@ function WorkSpace() {
   const [messageHistory, setMessageHistory] = useState([])
 
   const [onlineUsers, setOnlineUsers] = useState([])
+
+  const [showAI, setShowAI] = useState(false)
 
   const runCode = () => {
     setPreviewHtml(html)
@@ -161,7 +164,7 @@ function WorkSpace() {
       saveCode()
     }, 2000)
     return () => clearTimeout(timer)
-  }, [html, css, js,isLoaded])
+  }, [html, css, js, isLoaded])
 
   const loadRoomCode = async () => {
     try {
@@ -288,6 +291,10 @@ function WorkSpace() {
           </div>
 
           <Chat socketRef={socketRef} roomId={roomId} messageHistory={messageHistory} setMessageHistory={setMessageHistory} />
+          <AIAssistant
+            show={showAI}
+            onClose={() => setShowAI(false)}
+          />
 
 
         </div>
@@ -300,7 +307,12 @@ function WorkSpace() {
 
             <div className='flex items-center gap-3 text-gray-400'>
               <TbReload onClick={runCode} className="cursor-pointer hover:text-black" />
-              <button onClick={saveCode}><IoIosSave className="cursor-pointer hover:text-black" /></button>
+              {/* <button onClick={saveCode}><IoIosSave className="cursor-pointer hover:text-black" /></button> */}
+              <button
+                onClick={() => setShowAI(true)}
+              >
+                🤖
+              </button>
             </div>
           </div>
 
