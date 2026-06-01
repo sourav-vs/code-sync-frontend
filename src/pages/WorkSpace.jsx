@@ -33,6 +33,7 @@ function WorkSpace() {
   const [onlineUsers, setOnlineUsers] = useState([])
 
   const [showAI, setShowAI] = useState(false)
+  console.log("showAI =", showAI)
 
   const runCode = () => {
     setPreviewHtml(html)
@@ -209,8 +210,12 @@ function WorkSpace() {
     <>
       <WorkSpaceHeader onlineUsers={onlineUsers} />
 
-      <div className='grid grid-cols-5'>
-        <div className="col-span-3 h-[calc(100vh-60px)] flex flex-col text-black p-4">
+      <div className={`transition-all duration-300 ${showAI ? "mr-[350px]" : ""
+        }`}>
+        <div className={showAI
+          ? "col-span-5 h-[calc(100vh-60px)] flex flex-col text-black p-4"
+          : "col-span-7 h-[calc(100vh-60px)] flex flex-col text-black p-4"
+        }>
 
           {/* Tabs */}
           <div className="flex gap-4 border-gray-700 mb-3">
@@ -246,7 +251,8 @@ function WorkSpace() {
           </div>
 
           {/* Editor */}
-          <div className="flex-1">
+
+          <div className="flex-1 gap-3">
             <textarea
               className="w-full h-full border border-gray-700 shadow-md rounded-md p-4 text-sm outline-none focus:ring-2 focus:ring-gray-600"
 
@@ -291,60 +297,74 @@ function WorkSpace() {
           </div>
 
           <Chat socketRef={socketRef} roomId={roomId} messageHistory={messageHistory} setMessageHistory={setMessageHistory} />
-          <AIAssistant
-            show={showAI}
-            onClose={() => setShowAI(false)}
-          />
 
 
-        </div>
-        <div className='col-span-2'>
-          <div className='flex items-center justify-between p-4 border-gray-700'>
-            <div className='flex items-center gap-3 text-gray-600'>
-              <FaEye />
-              <h1>Live Preview</h1>
-            </div>
 
-            <div className='flex items-center gap-3 text-gray-400'>
-              <TbReload onClick={runCode} className="cursor-pointer hover:text-black" />
-              {/* <button onClick={saveCode}><IoIosSave className="cursor-pointer hover:text-black" /></button> */}
-              <button
-                onClick={() => setShowAI(true)}
-              >
-                🤖
-              </button>
-            </div>
-          </div>
 
-          <div className='h-[80vh] mx-3 mt-1 border border-gray-700 rounded-md flex items-center justify-center bg-[#161b22]'>
-            {isEmpty ? (
-              <div className="h-full flex items-center justify-center">
-                <p className="text-gray-400">Live Preview Output</p>
+          <div className={
+            showAI
+              ? "col-span-4"
+              : "col-span-5"
+          }>
+            <div className='flex items-center justify-between p-4 border-gray-700'>
+              <div className='flex items-center gap-3 text-gray-600'>
+                <FaEye />
+                <h1>Live Preview</h1>
               </div>
-            ) : (
-              <iframe
-                srcDoc={srcDoc}
-                title="preview"
-                sandbox="allow-scripts"
-                frameBorder="0"
-                className="w-full h-full bg-white rounded-md"
-              />
-            )}
+
+              <div className='flex items-center gap-3 text-gray-400'>
+                <TbReload onClick={runCode} className="cursor-pointer hover:text-black" />
+                {/* <button onClick={saveCode}><IoIosSave className="cursor-pointer hover:text-black" /></button> */}
+                <button
+                  onClick={() => {
+                    console.log("AI CLICKED")
+                    setShowAI(prev => !prev)
+                  }}
+                >
+                  🤖
+                </button>
+              </div>
+            </div>
+
+            <div className='h-[80vh] mx-3 mt-1 border border-gray-700 rounded-md flex items-center justify-center bg-[#161b22]'>
+              {isEmpty ? (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-gray-400">Live Preview Output</p>
+                </div>
+              ) : (
+                <iframe
+                  srcDoc={srcDoc}
+                  title="preview"
+                  sandbox="allow-scripts"
+                  frameBorder="0"
+                  className="w-full h-full bg-white rounded-md"
+                />
+              )}
+            </div>
           </div>
+
+          {
+            showAI && (
+              <div
+                className="
+      fixed
+      right-0
+      top-[70px]
+      w-[350px]
+      h-[calc(100vh-70px)]
+      bg-black
+      border-l
+      shadow-lg
+      z-50
+      p-4
+      "
+              >
+                <AIAssistant />
+              </div>
+            )
+          }
         </div>
       </div>
-      {/* <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnFocusLoss={false}
-        draggable
-        pauseOnHover={false}
-        theme="light"
-        transition={Bounce}
-      /> */}
     </>
   )
 }
