@@ -17,20 +17,34 @@ function Header() {
     setUser(null)
   }
 
+  const handleCreateRoom = () => {
+
+    const token = localStorage.getItem("token")
+
+    if (token) {
+
+      const roomId = crypto.randomUUID()
+
+      navigate(`/workspace/${roomId}`)
+
+    } else {
+
+      navigate('/auth')
+
+    }
+
+  }
+
   return (
     <>
       <div className='flex items-center justify-between w-full rounded shadow px-4 py-2'>
         <div className='flex flex-block items-center gap-2'>
           <img src="IDE-LOGO.png" alt="" width={'200px'} height={'50px'} />
-          <h1 className='text-lg  px-2 py-1 rounded-md shadow hover:bg-black hover:text-white'>Dashboard</h1>
-          <h1 className='text-lg  px-2 py-1 rounded-md shadow hover:bg-black hover:text-white'>Rooms</h1>
-          <h1 className='text-lg  px-2 py-1 rounded-md shadow hover:bg-black hover:text-white'>Documentation</h1>
-          <h1 className='text-lg  px-2 py-1 rounded-md shadow hover:bg-black hover:text-white'>Terminal</h1>
         </div>
         <div className='relative flex flex-block items-center gap-4 px-5'>
-          <BsBellFill className='black' />
-          <IoSettings />
-          <button className='btn border px-2 py-2 rounded-md text-white bg-black'>Create Room</button>
+          {/* <BsBellFill className='black' />
+          <IoSettings /> */}
+          <button onClick={handleCreateRoom} className='btn border px-2 py-2 rounded-md text-white bg-black'>Create Room</button>
 
           <button onClick={() => setDropDown(!dropDown)}>
             {

@@ -210,11 +210,11 @@ function WorkSpace() {
     <>
       <WorkSpaceHeader onlineUsers={onlineUsers} />
 
-      <div className={`flex transition-all duration-300 ${showAI ? "mr-[350px]" : ""
+      <div className={`flex flex-col lg:flex-row transition-all duration-300 ${showAI ? "lg:mr-[350px]" : ""
         }`}>
         <div className={showAI
-          ? "w-[60%] px-3"
-          : "w-[65%] px-3"
+          ? "w-full lg:w-[60%] px-3"
+          : "w-full lg:w-[65%] px-3"
         }>
 
           {/* Tabs */}
@@ -254,7 +254,7 @@ function WorkSpace() {
 
           <div className="flex-1 gap-3">
             <textarea
-              className="w-full h-[80vh] border border-gray-700 shadow-md p-4 rounded-md text-sm outline-none focus:ring-2 focus:ring-gray-600"
+              className="w-full h-[50vh] md:h-[80vh] border border-gray-700 shadow-md p-4 rounded-md text-sm outline-none focus:ring-2 focus:ring-gray-600"
 
               value={activeTab == "html" ? html : activeTab == "css" ? css : js}
 
@@ -303,8 +303,8 @@ function WorkSpace() {
 
         <div className={
           showAI
-            ? "w-[40%] px-3"
-            : "w-[35%] px-3"
+            ? "w-full lg:w-[40%] px-3"
+            : "w-full lg:w-[35%] px-3"
         }>
           <div className='flex items-center justify-between pt-5 border-gray-700'>
             <div className='flex items-center gap-3 text-gray-600'>
@@ -326,7 +326,7 @@ function WorkSpace() {
             </div>
           </div>
 
-          <div className='h-[80vh] border border-gray-700 rounded-md flex items-center justify-center bg-[#161b22]'>
+          <div className='h-[50vh] md:h-[80vh] border border-gray-700 rounded-md flex items-center justify-center bg-[#161b22]'>
             {isEmpty ? (
               <div className="h-full flex items-center justify-center">
                 <p className="text-gray-400">Live Preview Output</p>
@@ -345,23 +345,31 @@ function WorkSpace() {
 
         {
           showAI && (
-            <div
-              className="
-    fixed
-    right-3
-    top-[85px]
-    w-[340px]
-    h-[calc(100vh-100px)]
-    bg-white
-    border
-    rounded-xl
-    shadow-xl
-    overflow-hidden
-    z-50
-  "
-            >
-              <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs}/>
-            </div>
+            <>
+              <div
+                className="
+                hidden
+                md:block
+      fixed
+      right-3
+      top-[70px]
+      sm:top-[85px]
+      w-[95vw]
+      sm:w-[340px]
+      h-[calc(100vh-100px)]
+      bg-white
+      border
+      rounded-xl
+      shadow-xl
+      overflow-hidden
+      z-50
+    ">
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs}/>
+              </div>
+              <div className="md:hidden fixed bottom-0 left-0 right-0 h-[55vh] bg-white rounded-t-2xl shadow-2xl z-50">
+      <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs}/>
+    </div>
+            </>
           )
         }
       </div>

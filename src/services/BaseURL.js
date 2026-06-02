@@ -1,1 +1,1 @@
-export const baseUrl='http://localhost:5000'
+export const baseUrl='https://code-sync-backend-6g1g.onrender.com'
