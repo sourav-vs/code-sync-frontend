@@ -210,11 +210,11 @@ function WorkSpace() {
     <>
       <WorkSpaceHeader onlineUsers={onlineUsers} />
 
-      <div className={`transition-all duration-300 ${showAI ? "mr-[350px]" : ""
+      <div className={`flex transition-all duration-300 ${showAI ? "mr-[350px]" : ""
         }`}>
         <div className={showAI
-          ? "col-span-5 h-[calc(100vh-60px)] flex flex-col text-black p-4"
-          : "col-span-7 h-[calc(100vh-60px)] flex flex-col text-black p-4"
+          ? "w-[60%] px-3"
+          : "w-[65%] px-3"
         }>
 
           {/* Tabs */}
@@ -254,7 +254,7 @@ function WorkSpace() {
 
           <div className="flex-1 gap-3">
             <textarea
-              className="w-full h-full border border-gray-700 shadow-md rounded-md p-4 text-sm outline-none focus:ring-2 focus:ring-gray-600"
+              className="w-full h-[80vh] border border-gray-700 shadow-md p-4 rounded-md text-sm outline-none focus:ring-2 focus:ring-gray-600"
 
               value={activeTab == "html" ? html : activeTab == "css" ? css : js}
 
@@ -287,10 +287,10 @@ function WorkSpace() {
               }}
               placeholder={
                 activeTab === "html"
-                  ? "Write HTML here..."
+                  ? "  Write HTML here..."
                   : activeTab === "css"
-                    ? "Write CSS here..."
-                    : "Write JavaScript here..."
+                    ? "  Write CSS here..."
+                    : "  Write JavaScript here..."
               }
 
             />
@@ -299,71 +299,71 @@ function WorkSpace() {
           <Chat socketRef={socketRef} roomId={roomId} messageHistory={messageHistory} setMessageHistory={setMessageHistory} />
 
 
+        </div>
 
-
-          <div className={
-            showAI
-              ? "col-span-4"
-              : "col-span-5"
-          }>
-            <div className='flex items-center justify-between p-4 border-gray-700'>
-              <div className='flex items-center gap-3 text-gray-600'>
-                <FaEye />
-                <h1>Live Preview</h1>
-              </div>
-
-              <div className='flex items-center gap-3 text-gray-400'>
-                <TbReload onClick={runCode} className="cursor-pointer hover:text-black" />
-                {/* <button onClick={saveCode}><IoIosSave className="cursor-pointer hover:text-black" /></button> */}
-                <button
-                  onClick={() => {
-                    console.log("AI CLICKED")
-                    setShowAI(prev => !prev)
-                  }}
-                >
-                  🤖
-                </button>
-              </div>
+        <div className={
+          showAI
+            ? "w-[40%] px-3"
+            : "w-[35%] px-3"
+        }>
+          <div className='flex items-center justify-between pt-5 border-gray-700'>
+            <div className='flex items-center gap-3 text-gray-600'>
+              <FaEye />
+              <h1>Live Preview</h1>
             </div>
 
-            <div className='h-[80vh] mx-3 mt-1 border border-gray-700 rounded-md flex items-center justify-center bg-[#161b22]'>
-              {isEmpty ? (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-gray-400">Live Preview Output</p>
-                </div>
-              ) : (
-                <iframe
-                  srcDoc={srcDoc}
-                  title="preview"
-                  sandbox="allow-scripts"
-                  frameBorder="0"
-                  className="w-full h-full bg-white rounded-md"
-                />
-              )}
+            <div className='flex items-center gap-3 text-gray-400'>
+              <TbReload onClick={runCode} className="cursor-pointer hover:text-black" />
+              {/* <button onClick={saveCode}><IoIosSave className="cursor-pointer hover:text-black" /></button> */}
+              <button className='me-2'
+                onClick={() => {
+                  console.log("AI CLICKED")
+                  setShowAI(prev => !prev)
+                }}
+              >
+                🤖
+              </button>
             </div>
           </div>
 
-          {
-            showAI && (
-              <div
-                className="
-      fixed
-      right-0
-      top-[70px]
-      w-[350px]
-      h-[calc(100vh-70px)]
-      bg-black
-      border-l
-      shadow-lg
-      z-50
-      p-4
-      "
-              >
-                <AIAssistant />
+          <div className='h-[80vh] border border-gray-700 rounded-md flex items-center justify-center bg-[#161b22]'>
+            {isEmpty ? (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-gray-400">Live Preview Output</p>
               </div>
-            )
-          }
+            ) : (
+              <iframe
+                srcDoc={srcDoc}
+                title="preview"
+                sandbox="allow-scripts"
+                frameBorder="0"
+                className="w-full h-full bg-white rounded-md"
+              />
+            )}
+          </div>
         </div>
+
+        {
+          showAI && (
+            <div
+              className="
+    fixed
+    right-3
+    top-[85px]
+    w-[340px]
+    h-[calc(100vh-100px)]
+    bg-white
+    border
+    rounded-xl
+    shadow-xl
+    overflow-hidden
+    z-50
+  "
+            >
+              <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs}/>
+            </div>
+          )
+        }
       </div>
     </>
   )

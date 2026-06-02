@@ -1,70 +1,174 @@
 import React, { useState } from 'react'
-import { IoClose } from "react-icons/io5";
-import { FaRobot } from "react-icons/fa";
+import { generateCodeAPI } from '../services/allAPI'
 
-function AIAssistant({ show, onClose }) {
+
+function AIAssistant({ onClose, setHtml,setCss,setJs }) {
 
     const [prompt, setPrompt] = useState("")
     const [response, setResponse] = useState("")
+    const [loading, setLoading] = useState(false)
 
-    if (!show) return null
+ const handleGenerate = async () => {
+
+    if (!prompt.trim()) return
+
+    try {
+
+        setLoading(true)
+
+        const result =
+            await generateCodeAPI({
+                prompt
+            })
+
+        if (result.status === 200) {
+
+            setResponse(
+                result.data.response
+            )
+
+        }
+
+    }
+    catch (err) {
+
+        console.log(err)
+
+    }
+    finally {
+
+        setLoading(false)
+
+    }
+
+}
+
+    const insertCode = () => {
+          const htmlMatch = response.match(
+        /<body[^>]*>([\s\S]*)<\/body>/i
+    )
+
+    const styleMatch = response.match(
+        /<style[^>]*>([\s\S]*?)<\/style>/i
+    )
+
+    const scriptMatch = response.match(
+        /<script[^>]*>([\s\S]*?)<\/script>/i
+    )
+
+    setHtml(
+        htmlMatch ? htmlMatch[1] : response
+    )
+
+    setCss(
+        styleMatch ? styleMatch[1] : ""
+    )
+
+    setJs(
+        scriptMatch ? scriptMatch[1] : ""
+    )
+
+    }
 
     return (
-        <>
-            <div className="h-[calc(100vh-80px)] bg-black border rounded-lg shadow-lg p-4">
-    
-                <div className="flex justify-between items-center">
-    
-                    <h2 className="font-bold text-lg">
-                        🤖 AI Assistant
+        <div className="h-full flex flex-col bg-white rounded-lg">
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b p-4">
+                <div className="flex items-center gap-2">
+                    <span className="text-xl">🤖</span>
+                    <h2 className="font-semibold text-lg">
+                        AI Assistant
                     </h2>
-    
                 </div>
-    
-                <hr className="my-3" />
-    
-                <label>
-                    Ask AI
-                </label>
-    
-                <textarea
-                    className="w-full border rounded-md p-3 mt-2"
-                    rows="6"
-                    placeholder="Create a responsive navbar using HTML and CSS"
-                />
-    
+
                 <button
-                    className="bg-black text-white px-4 py-2 rounded mt-3"
+                    onClick={onClose}
+                    className="text-gray-500 hover:text-black"
                 >
-                    Generate
+                    ✕
                 </button>
-    
-                <h3 className="mt-5 font-semibold">
-                    Response
-                </h3>
-    
-                <div
-                    className="border rounded-md mt-2 p-3 h-[350px] overflow-y-auto"
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+
+                <button
+                    className="text-sm px-2 py-1 border rounded"
+                    onClick={() => setPrompt("Create a responsive navbar")}
                 >
-    
-                    AI response here
-    
+                    Navbar
+                </button>
+
+                <button
+                    className="text-sm px-2 py-1 border rounded"
+                    onClick={() => setPrompt("Create a login form")}
+                >
+                    Login Form
+                </button>
+
+                <button
+                    className="text-sm px-2 py-1 border rounded"
+                    onClick={() => setPrompt("Create a landing page")}
+                >
+                    Landing Page
+                </button>
+
+            </div>
+
+            {/* Chat Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+
+                <div className="bg-gray-100 p-3 rounded-lg">
+                    <p className="text-sm font-medium">
+                        You
+                    </p>
+                    <p>Create a responsive navbar</p>
                 </div>
-    
-                <div className="flex justify-end gap-2 mt-3">
-    
-                    <button className="border px-3 py-2 rounded">
-                        Copy
+
+                <div className="bg-blue-50 p-3 rounded-lg">
+                    <p className="text-sm font-medium text-blue-600">
+                        AI
+                    </p>
+                    {
+                        loading
+                            ? <p>Generating...</p>
+                            : <pre className="whitespace-pre-wrap text-sm">
+                                {response || "AI generated code will appear here..."}
+                            </pre>
+                    }
+                </div>
+
+            </div>
+
+            {/* Input Section */}
+            <div className="border-t p-4">
+
+                <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    rows={4}
+                    placeholder="Ask AI to generate HTML, CSS or JavaScript..."
+                    className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <div className="flex gap-2 mt-3">
+
+                    <button onClick={handleGenerate}
+                        className="flex-1 bg-black text-white py-2 rounded-lg hover:bg-gray-800"
+                    >
+                        Generate
                     </button>
-    
-                    <button className="bg-green-600 text-white px-3 py-2 rounded">
+
+                    <button onClick={insertCode}
+                        className="px-4 border rounded-lg hover:bg-gray-100"
+                    >
                         Insert
                     </button>
-    
+
                 </div>
-    
+
             </div>
-        </>
+
+        </div>
     )
 }
 

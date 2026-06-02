@@ -21,3 +21,8 @@ export const saveRoomCodeAPI = async (reqBody) => {
 export const getRoomCodeAPI = async (roomId) => {
   return await commonAPI("GET",`${baseUrl}/room/${roomId}`,"",{})
 }
+
+// get generated code
+export const generateCodeAPI = async (reqBody) => {
+    return await commonAPI("POST",`${baseUrl}/generate-code`,reqBody,{})
+}
