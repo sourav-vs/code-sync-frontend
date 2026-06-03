@@ -2,49 +2,50 @@ import React, { useState } from 'react'
 import { generateCodeAPI } from '../services/allAPI'
 
 
-function AIAssistant({ onClose, setHtml,setCss,setJs }) {
+function AIAssistant({ onClose, setHtml, setCss, setJs,socketRef,roomId }) {
 
     const [prompt, setPrompt] = useState("")
     const [response, setResponse] = useState("")
     const [loading, setLoading] = useState(false)
 
- const handleGenerate = async () => {
+    const handleGenerate = async () => {
 
-    if (!prompt.trim()) return
+        if (!prompt.trim()) return
 
-    try {
+        try {
 
-        setLoading(true)
+            setLoading(true)
 
-        const result =
-            await generateCodeAPI({
-                prompt
-            })
+            const result =
+                await generateCodeAPI({
+                    prompt
+                })
 
-        if (result.status === 200) {
+            if (result.status === 200) {
 
-            setResponse(
-                result.data.response
-            )
+                setResponse(
+                    result.data.response
+                )
+
+            }
+
+        }
+        catch (err) {
+
+            console.log(err)
+
+        }
+        finally {
+
+            setLoading(false)
 
         }
 
     }
-    catch (err) {
-
-        console.log(err)
-
-    }
-    finally {
-
-        setLoading(false)
-
-    }
-
-}
 
     const insertCode = () => {
-          const htmlMatch = response.match(
+
+    const htmlMatch = response.match(
         /<body[^>]*>([\s\S]*)<\/body>/i
     )
 
@@ -56,19 +57,29 @@ function AIAssistant({ onClose, setHtml,setCss,setJs }) {
         /<script[^>]*>([\s\S]*?)<\/script>/i
     )
 
-    setHtml(
+    const newHtml =
         htmlMatch ? htmlMatch[1] : response
-    )
 
-    setCss(
+    const newCss =
         styleMatch ? styleMatch[1] : ""
-    )
 
-    setJs(
+    const newJs =
         scriptMatch ? scriptMatch[1] : ""
-    )
 
-    }
+    setHtml(newHtml)
+    setCss(newCss)
+    setJs(newJs)
+
+    socketRef.current.emit(
+        "code-change",
+        {
+            roomId,
+            html: newHtml,
+            css: newCss,
+            js: newJs
+        }
+    )
+}
 
     return (
         <div className="h-full flex flex-col bg-white rounded-lg">
