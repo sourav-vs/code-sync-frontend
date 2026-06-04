@@ -21,14 +21,10 @@ function WorkSpaceHeader({ onlineUsers }) {
         navigate('/')
     }
     const handleCopyRoomId = async () => {
-
         await navigator.clipboard.writeText(roomId)
-
         toast.success("Room ID copied", {
             containerId: "center-toast"
         })
-
-
     }
     const handleShare = async () => {
 
@@ -44,7 +40,7 @@ function WorkSpaceHeader({ onlineUsers }) {
         <>
             <div className='flex flex-col md:flex-row items-center justify-between w-full rounded shadow px-4 py-2 gap-3'>
                 <div className='flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto'>
-                    <img src="IDE-LOGO.png" alt="" width={'200px'} height={'50px'} />
+                    <img src="/IDE-LOGO.png" alt="" width={'200px'} height={'50px'} />
                     <div className='flex items-center gap-3 p-2 rounded-md shadow-md bg-gray-300 max-w-full overflow-hidden'>
                         <p className='text-xs text-gray-600'>ROOM ID</p>
                         <p className='truncate max-w-[180px]'>{roomId}</p>
