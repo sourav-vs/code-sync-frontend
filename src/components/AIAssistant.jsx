@@ -2,84 +2,133 @@ import React, { useState } from 'react'
 import { generateCodeAPI } from '../services/allAPI'
 
 
-function AIAssistant({ onClose, setHtml, setCss, setJs,socketRef,roomId }) {
+function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html, css, js, htmlCursor, cssCursor, jsCursor, activeTab }) {
 
     const [prompt, setPrompt] = useState("")
     const [response, setResponse] = useState("")
     const [loading, setLoading] = useState(false)
 
     const handleGenerate = async () => {
-
         if (!prompt.trim()) return
-
         try {
-
             setLoading(true)
-
             const result =
                 await generateCodeAPI({
                     prompt
                 })
-
             if (result.status === 200) {
-
                 setResponse(
                     result.data.response
                 )
-
             }
-
         }
         catch (err) {
-
             console.log(err)
-
         }
         finally {
-
             setLoading(false)
-
         }
-
     }
 
     const insertCode = () => {
 
-    const htmlMatch = response.match(
-        /<body[^>]*>([\s\S]*)<\/body>/i
-    )
+        const htmlMatch =
+            response.match(
+                /<body[^>]*>([\s\S]*)<\/body>/i
+            )
 
-    const styleMatch = response.match(
-        /<style[^>]*>([\s\S]*?)<\/style>/i
-    )
+        const newHtml =
+            (
+                htmlMatch
+                    ? htmlMatch[1]
+                    : response
+            )
+                .replace(
+                    /<style[^>]*>[\s\S]*?<\/style>/gi,
+                    ""
+                )
+                .replace(
+                    /<script[^>]*>[\s\S]*?<\/script>/gi,
+                    ""
+                )
+                .trim()
 
-    const scriptMatch = response.match(
-        /<script[^>]*>([\s\S]*?)<\/script>/i
-    )
+        const styles =
+            [
+                ...response.matchAll(
+                    /<style[^>]*>([\s\S]*?)<\/style>/gi
+                )
+            ]
 
-    const newHtml =
-        htmlMatch ? htmlMatch[1] : response
+        const newCss =
+            styles
+                .map(match => match[1])
+                .join("\n\n")
 
-    const newCss =
-        styleMatch ? styleMatch[1] : ""
+        const scripts =
+            [
+                ...response.matchAll(
+                    /<script[^>]*>([\s\S]*?)<\/script>/gi
+                )
+            ]
 
-    const newJs =
-        scriptMatch ? scriptMatch[1] : ""
+        const newJs =
+            scripts
+                .map(match => match[1])
+                .join("\n\n")
 
-    setHtml(newHtml)
-    setCss(newCss)
-    setJs(newJs)
+        // const newHtml =
+        //     htmlMatch ? htmlMatch[1] : response
 
-    socketRef.current.emit(
-        "code-change",
-        {
-            roomId,
-            html: newHtml,
-            css: newCss,
-            js: newJs
-        }
-    )
-}
+        // const newCss =
+        //     styleMatch ? styleMatch[1] : ""
+
+        // const newJs =
+        //     scriptMatch ? scriptMatch[1] : ""
+
+        let updatedHtml = html
+        let updatedCss = css
+        let updatedJs = js
+
+
+        updatedHtml =
+            activeTab === "html"
+                ?
+                html.slice(0, htmlCursor ?? html.length) + newHtml + html.slice(htmlCursor ?? html.length)
+                :
+                html + "\n" + newHtml
+
+        updatedCss =
+            newCss
+                ? (
+                    activeTab === "css"
+                        ? css.slice(0, cssCursor ?? css.length)
+                        + newCss
+                        + css.slice(cssCursor ?? css.length)
+                        : css + "\n" + newCss
+                )
+                : css
+
+        updatedJs =
+            activeTab === "js"
+                ?
+                js.slice(0, jsCursor ?? js.length) + newJs + js.slice(jsCursor ?? js.length)
+                :
+                js + "\n" + newJs
+
+        setHtml(updatedHtml)
+        setCss(updatedCss)
+        setJs(updatedJs)
+        socketRef.current.emit(
+            "code-change",
+            {
+                roomId,
+                html: updatedHtml,
+                css: updatedCss,
+                js: updatedJs
+            }
+        )
+    }
 
     return (
         <div className="h-full flex flex-col bg-white rounded-lg">

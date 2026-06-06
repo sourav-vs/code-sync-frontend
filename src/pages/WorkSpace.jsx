@@ -33,7 +33,12 @@ function WorkSpace() {
   const [onlineUsers, setOnlineUsers] = useState([])
 
   const [showAI, setShowAI] = useState(false)
-  console.log("showAI =", showAI)
+
+  const editorRef = useRef(null)
+
+  const [htmlCursor, setHtmlCursor] = useState(0)
+  const [cssCursor, setCssCursor] = useState(0)
+  const [jsCursor, setJsCursor] = useState(0)
 
   const runCode = () => {
     setPreviewHtml(html)
@@ -253,10 +258,32 @@ function WorkSpace() {
           {/* Editor */}
 
           <div className="flex-1 gap-3">
-            <textarea
+            <textarea ref={editorRef}
               className="w-full h-[50vh] md:h-[80vh] border border-gray-700 shadow-md p-4 rounded-md text-sm outline-none focus:ring-2 focus:ring-gray-600"
 
               value={activeTab == "html" ? html : activeTab == "css" ? css : js}
+
+              onClick={(e) => {
+                if (activeTab === "html")
+                  setHtmlCursor(e.target.selectionStart)
+
+                else if (activeTab === "css")
+                  setCssCursor(e.target.selectionStart)
+
+                else
+                  setJsCursor(e.target.selectionStart)
+              }}
+
+              onKeyUp={(e) => {
+                if (activeTab === "html")
+                  setHtmlCursor(e.target.selectionStart)
+
+                else if (activeTab === "css")
+                  setCssCursor(e.target.selectionStart)
+
+                else
+                  setJsCursor(e.target.selectionStart)
+              }}
 
               onChange={(e) => {
                 const value = e.target.value
@@ -364,11 +391,11 @@ function WorkSpace() {
       overflow-hidden
       z-50
     ">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId}/>
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab}/>
               </div>
               <div className="md:hidden fixed bottom-0 left-0 right-0 h-[55vh] bg-white rounded-t-2xl shadow-2xl z-50">
-      <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId}/>
-    </div>
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab}/>
+              </div>
             </>
           )
         }
