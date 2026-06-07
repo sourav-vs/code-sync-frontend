@@ -6,12 +6,13 @@ import { IoIosSave } from "react-icons/io";
 import { io } from "socket.io-client"
 import { useEffect } from 'react';
 import { baseUrl } from '../services/BaseURL';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useRef } from "react"
 import Chat from '../components/chat';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import { getRoomCodeAPI, saveRoomCodeAPI } from '../services/allAPI';
 import AIAssistant from '../components/AIAssistant';
+
 
 function WorkSpace() {
   const [activeTab, setActiveTab] = useState("html")
@@ -47,10 +48,27 @@ function WorkSpace() {
   }
 
   const socketRef = useRef()
+  const hasChangedRef = useRef(false)
+
+  const htmlRef = useRef("")
+  const cssRef = useRef("")
+  const jsRef = useRef("")
 
   const { roomId } = useParams()
 
   console.log(roomId)
+
+  useEffect(() => {
+    htmlRef.current = html
+  }, [html])
+
+  useEffect(() => {
+    cssRef.current = css
+  }, [css])
+
+  useEffect(() => {
+    jsRef.current = js
+  }, [js])
 
   useEffect(() => {
 
@@ -60,6 +78,8 @@ function WorkSpace() {
 
     socketRef.current.on("connect", () => {
 
+      console.log("TEST FRAME EMITTED")
+
       console.log("socket connected")
       socketRef.current.emit("join-room", {
         roomId,
@@ -67,6 +87,7 @@ function WorkSpace() {
       })
 
     })
+
 
     // joined user
     socketRef.current.on("user-joined", (data) => {
@@ -171,6 +192,42 @@ function WorkSpace() {
     }, 2000)
     return () => clearTimeout(timer)
   }, [html, css, js, isLoaded])
+
+  useEffect(() => {
+
+    if (!isLoaded) return
+
+    const interval = setInterval(() => {
+
+      if (!hasChangedRef.current) return
+
+      const username = localStorage.getItem("username")
+
+      socketRef.current?.emit("save-frame", {
+
+        roomId,
+
+        userId: username,
+
+        username,
+
+        html: htmlRef.current,
+
+        css: cssRef.current,
+
+        js: jsRef.current
+
+      })
+
+      console.log("FRAME SAVED")
+
+      hasChangedRef.current = false
+
+    }, 5000)
+
+    return () => clearInterval(interval)
+
+  }, [roomId, isLoaded])
 
   const loadRoomCode = async () => {
     try {
@@ -305,6 +362,7 @@ function WorkSpace() {
                   setJs(value)
                 }
                 console.log("emitting code")
+                hasChangedRef.current = true
                 socketRef.current.emit("code-change", {
                   roomId,
                   html: updatedHtml,
@@ -340,6 +398,12 @@ function WorkSpace() {
             </div>
 
             <div className='flex items-center gap-3 text-gray-400'>
+              <button
+                onClick={() => navigate(`/session-replay/${roomId}`)}
+                className="rounded-lg"
+              >
+                ▶ Replay Session
+              </button>
               <TbReload onClick={runCode} className="cursor-pointer hover:text-black" />
               {/* <button onClick={saveCode}><IoIosSave className="cursor-pointer hover:text-black" /></button> */}
               <button className='me-2'
@@ -391,10 +455,10 @@ function WorkSpace() {
       overflow-hidden
       z-50
     ">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab}/>
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} />
               </div>
               <div className="md:hidden fixed bottom-0 left-0 right-0 h-[55vh] bg-white rounded-t-2xl shadow-2xl z-50">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab}/>
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} />
               </div>
             </>
           )

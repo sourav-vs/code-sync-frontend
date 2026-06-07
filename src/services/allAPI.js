@@ -26,3 +26,8 @@ export const getRoomCodeAPI = async (roomId) => {
 export const generateCodeAPI = async (reqBody) => {
     return await commonAPI("POST",`${baseUrl}/generate-code`,reqBody,{})
 }
+
+// get replay frames
+export const getReplayFramesAPI = async (roomId) => {
+    return await commonAPI("GET",`${baseUrl}/replay/${roomId}`,"",{})
+}
