@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { generateCodeAPI } from '../services/allAPI'
 
 
-function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html, css, js, htmlCursor, cssCursor, jsCursor, activeTab }) {
+function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html, css, js, htmlCursor, cssCursor, jsCursor, activeTab, sourceRef, hasChangedRef }) {
 
     const [prompt, setPrompt] = useState("")
     const [response, setResponse] = useState("")
@@ -128,6 +128,8 @@ function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html,
                 js: updatedJs
             }
         )
+        sourceRef.current = "ai"
+        hasChangedRef.current = true
     }
 
     return (

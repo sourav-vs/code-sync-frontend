@@ -53,6 +53,7 @@ function WorkSpace() {
   const htmlRef = useRef("")
   const cssRef = useRef("")
   const jsRef = useRef("")
+  const sourceRef = useRef("manual")
 
   const { roomId } = useParams()
 
@@ -215,13 +216,15 @@ function WorkSpace() {
 
         css: cssRef.current,
 
-        js: jsRef.current
+        js: jsRef.current,
+        source: sourceRef.current
 
       })
 
       console.log("FRAME SAVED")
 
       hasChangedRef.current = false
+      sourceRef.current = "manual"
 
     }, 5000)
 
@@ -342,6 +345,13 @@ function WorkSpace() {
                   setJsCursor(e.target.selectionStart)
               }}
 
+              onPaste={(e) => {
+
+                sourceRef.current = "paste"
+                hasChangedRef.current = true
+
+              }}
+
               onChange={(e) => {
                 const value = e.target.value
 
@@ -362,6 +372,9 @@ function WorkSpace() {
                   setJs(value)
                 }
                 console.log("emitting code")
+                if (sourceRef.current !== "paste") {
+                  sourceRef.current = "manual"
+                }
                 hasChangedRef.current = true
                 socketRef.current.emit("code-change", {
                   roomId,
@@ -455,10 +468,10 @@ function WorkSpace() {
       overflow-hidden
       z-50
     ">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} />
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef}/>
               </div>
               <div className="md:hidden fixed bottom-0 left-0 right-0 h-[55vh] bg-white rounded-t-2xl shadow-2xl z-50">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} />
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef}/>
               </div>
             </>
           )

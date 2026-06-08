@@ -16,10 +16,33 @@ function SessionReplay() {
   const [currentFrame, setCurrentFrame] = useState(0)
   const [currentCode, setCurrentCode] = useState({ html: "", css: "", js: "" })
 
+
+  const manualCount =
+    frames.filter(frame => frame.source === "manual").length
+
+  const aiCount =
+    frames.filter(frame => frame.source === "ai").length
+
+  const pasteCount =
+    frames.filter(frame => frame.source === "paste").length
+
+  const totalFrames = frames.length
+
+  const manualPercentage =
+    Math.round((manualCount / totalFrames) * 100)
+
+  const aiPercentage =
+    Math.round((aiCount / totalFrames) * 100)
+
+  const pastePercentage =
+    Math.round((pasteCount / totalFrames) * 100)
+
   const getFrames = async () => {
     try {
       const result = await getReplayFramesAPI(roomId)
-      console.log(result);
+      console.log(
+        result.data.map(frame => frame.source)
+      )
       setFrames(result.data)
     } catch (error) {
       console.log(error);
@@ -38,6 +61,8 @@ function SessionReplay() {
       js: frames[currentFrame]?.js || ""
     })
   }, [frames, currentFrame])
+
+  const currentFrameData = frames[currentFrame]
 
   return (
     <div className="min-h-screen bg-gray-100 p-5">
@@ -199,7 +224,7 @@ function SessionReplay() {
 
             <div className="text-gray-500">
 
-              Frame {currentFrame + 1} / {frames.length}
+              Frame {currentFrame + 1} / {frames?.length}
 
             </div>
 
@@ -608,6 +633,141 @@ function SessionReplay() {
 
               </h2>
 
+              <div className="bg-gray-50 rounded-2xl p-5 mt-8">
+
+                <h2 className="font-semibold text-lg mb-5">
+                  Last Action
+                </h2>
+
+                <div className="flex justify-between mb-4">
+
+                  <span>Source</span>
+
+                  {
+                    currentFrameData?.source === "manual" && (
+                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                        ⌨️ Manual
+                      </span>
+                    )
+                  }
+
+                  {
+                    currentFrameData?.source === "paste" && (
+                      <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                        📋 Pasted
+                      </span>
+                    )
+                  }
+
+                  {
+                    currentFrameData?.source === "ai" && (
+                      <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
+                        🤖 AI Generated
+                      </span>
+                    )
+                  }
+
+                </div>
+
+              </div>
+
+              <div className="mt-10">
+
+                <h2 className="font-semibold text-lg mb-5">
+                  Code Sources
+                </h2>
+
+                <div className="space-y-5">
+
+                  {/* Manual */}
+                  <div>
+
+                    <div className="flex justify-between mb-2">
+
+                      <span>
+                        ⌨️ Manual Typing
+                      </span>
+
+                      <span>
+                        {manualPercentage}%
+                      </span>
+
+                    </div>
+
+                    <div className="h-3 bg-gray-200 rounded-full">
+
+                      <div
+                        className="h-3 bg-blue-500 rounded-full"
+                        style={{
+                          width: `${manualPercentage}%`
+                        }}
+                      />
+
+                    </div>
+
+                  </div>
+
+
+                  {/* AI */}
+                  <div>
+
+                    <div className="flex justify-between mb-2">
+
+                      <span>
+                        🤖 AI Generated
+                      </span>
+
+                      <span>
+                        {aiPercentage}%
+                      </span>
+
+                    </div>
+
+                    <div className="h-3 bg-gray-200 rounded-full">
+
+                      <div
+                        className="h-3 bg-purple-500 rounded-full"
+                        style={{
+                          width: `${aiPercentage}%`
+                        }}
+                      />
+
+                    </div>
+
+                  </div>
+
+
+                  {/* Paste */}
+                  <div>
+
+                    <div className="flex justify-between mb-2">
+
+                      <span>
+                        📋 Pasted
+                      </span>
+
+                      <span>
+                        {pastePercentage}%
+                      </span>
+
+                    </div>
+
+                    <div className="h-3 bg-gray-200 rounded-full">
+
+                      <div
+                        className="h-3 bg-yellow-500 rounded-full"
+                        style={{
+                          width: `${pastePercentage}%`
+                        }}
+                      />
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
 
               <div className="flex justify-between mb-4">
 
