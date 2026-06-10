@@ -5,7 +5,6 @@ import { useEffect } from "react"
 import { getReplayFramesAPI } from "../services/allAPI";
 
 
-
 function SessionReplay() {
 
   const [activeTab, setActiveTab] = useState("html");
@@ -17,7 +16,7 @@ function SessionReplay() {
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [speed, setSpeed] = useState(1000)
-
+  const editorRef = useRef()
 
   useEffect(() => {
     if (!isPlaying) return
@@ -87,8 +86,16 @@ function SessionReplay() {
     })
   }, [frames, currentFrame])
 
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.scrollTop =
+        editorRef.current.scrollHeight
+    }
+  }, [currentCode])
+
   const currentFrameData = frames[currentFrame]
 
+  //started time 
   const firstRealFrame =
     frames.find(frame => frame.timestamp)
 
@@ -96,6 +103,31 @@ function SessionReplay() {
     firstRealFrame
       ? new Date(firstRealFrame.timestamp).toLocaleTimeString()
       : "--"
+
+  // ended time
+  const lastRealFrame =
+    frames.length > 0
+      ? frames[frames.length - 1]
+      : null
+
+  const endedTime =
+    lastRealFrame
+      ? new Date(lastRealFrame.timestamp).toLocaleTimeString()
+      : "--"
+
+  // session duration
+  const sessionDuration =
+    firstRealFrame && lastRealFrame
+      ? Math.floor(
+        (lastRealFrame.timestamp - firstRealFrame.timestamp) / 1000
+      )
+      : 0
+
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}m ${secs}s`
+  }
 
   const currentContent =
     activeTab === "html"
@@ -108,6 +140,11 @@ function SessionReplay() {
     currentContent
       ? currentContent.split("\n").length
       : 0
+
+  const totalLines =
+    currentContent
+      ? currentContent.split("\n").length
+      : 1
 
   const contributors = {}
 
@@ -123,37 +160,38 @@ function SessionReplay() {
   const totalDuration = frames.length
   const currentTime = currentFrame
   const formatTime = (seconds) => {
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins}:${secs.toString().padStart(2,"0")}`
-}
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, "0")}`
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-5">
       {/* HEADER */}
-      <div className="bg-white rounded-2xl shadow-md p-6 flex justify-between items-center mb-5">
+      <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-5">
         <div>
-          <div className="flex items-center gap-4">
-            <h1 className="text-4xl font-bold">🎬 Session Replay</h1>
+          <div className="flex flex-wrap items-center gap-4">
+            <img src="/IDE-LOGO.png" alt="" width={'200px'} height={'100px'}/>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold"> Session Replay</h1>
             <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold">
               ● Replay Ready
             </div>
           </div>
-          <p className="text-gray-500 mt-2">Room ID : {roomId}</p>
+          <p className="text-gray-500 mt-2 break-all">Room ID : {roomId}</p>
         </div>
 
-        <div className="flex gap-3">
-          <div className="bg-gray-100 px-5 py-3 rounded-xl">{Object.keys(contributors).length} Users</div>
-          <div className="bg-gray-100 px-5 py-3 rounded-xl">{frames.length} Frames</div>
+        <div className="flex flex-wrap gap-3">
+          <div className="bg-gray-100 px-4 py-3 rounded-xl text-center min-w-[110px]">{Object.keys(contributors).length} Users</div>
+          <div className="bg-gray-100 px-4 py-3 rounded-xl text-center min-w-[110px]">{frames.length} Frames</div>
         </div>
       </div>
 
       {/* MAIN GRID */}
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid lg:grid-cols-12 gap-5">
         {/* LEFT SIDE */}
-        <div className="col-span-8">
+        <div className="lg:col-span-8">
           {/* Language Tabs */}
-          <div className="bg-white rounded-xl shadow-md p-3 flex gap-3 mb-5">
+          <div className="bg-white rounded-xl shadow-md p-3 flex flex-wrap gap-3 mb-5">
             <button onClick={() => setActiveTab("html")} className={`px-5 py-2 rounded-lg transition ${activeTab === "html" ? "bg-black text-white" : "bg-gray-100"}`}
             >HTML</button>
 
@@ -164,8 +202,8 @@ function SessionReplay() {
           </div>
 
           {/* Frame Controls */}
-          <div className="bg-white rounded-xl shadow-md p-3 flex items-center justify-between mb-5">
-            <div className="flex gap-3">
+          <div className="bg-white rounded-xl shadow-md p-3 flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between mb-5">
+            <div className="flex flex-wrap gap-3">
               <button className=" px-5 py-3 bg-gray-100 rounded-xl hover:bg-gray-200 transition" onClick={() => {
                 setIsPlaying(false)
 
@@ -203,13 +241,15 @@ function SessionReplay() {
             <div className="h-[650px] flex overflow-hidden">
               {/* Line Numbers */}
               <div className="bg-[#252526] w-16 text-gray-500 p-5 font-mono text-sm">
-                {Array.from({ length: 50 }, (_, i) => (
-                  <div key={i}>{i + 1}</div>
+                {Array.from({ length: totalLines }, (_, i) => (
+                  <div key={i}>
+                    {i + 1}
+                  </div>
                 ))}
               </div>
 
               {/* Code */}
-              <textarea spellCheck={false}
+              <textarea ref={editorRef} spellCheck={false}
                 readOnly
                 value={
                   activeTab === "html"
@@ -261,11 +301,11 @@ function SessionReplay() {
 
         {/* RIGHT SIDE */}
 
-        <div className="col-span-4">
-          <div className="bg-white rounded-2xl shadow-md p-6">
+        <div className="lg:col-span-4 space-y-5">
+          <div className="bg-white rounded-2xl shadow-md p-6 lg:sticky lg:top-5">
             {/* Current Time */}
             <div className="text-center">
-              <h1 className="text-6xl font-bold">
+              <h1 className="text-4xl lg:text-6xl font-bold">
                 {formatTime(currentTime)}
               </h1>
 
@@ -279,7 +319,7 @@ function SessionReplay() {
             <button onClick={() => setIsPlaying(prev => !prev)} className="mt-10 w-full py-4 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition">{isPlaying ? "⏸ Pause" : "▶ Play"}</button>
 
             {/* Speed Buttons */}
-            <div className="grid grid-cols-4 gap-3 mt-5">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
               <button onClick={() => setSpeed(2000)} className={speed === 2000 ? "bg-black text-white py-3 rounded-lg" : "bg-gray-100 py-3 rounded-lg"}>0.5x</button>
 
               <button onClick={() => setSpeed(1000)} className={speed === 1000 ? "bg-black text-white py-3 rounded-lg" : "bg-gray-100 py-3 rounded-lg"}>1x</button>
@@ -454,20 +494,30 @@ function SessionReplay() {
                 <span>{startedTime}</span>
               </div>
 
+              <div className="flex justify-between mb-4">
+                <span>Ended</span>
+                <span>{endedTime}</span>
+              </div>
+
               {/* <div className="flex justify-between mb-4">
                 <span>Language</span>
                 <span>{activeTab.toUpperCase()}</span>
               </div> */}
 
               <div className="flex justify-between mb-4">
+                <span>Duration</span>
+                <span>{formatDuration(sessionDuration)}</span>
+              </div>
+
+              <div className="flex justify-between mb-4">
                 <span>Lines</span>
                 <span>{lineCount}</span>
               </div>
 
-              <div className="flex justify-between">
+              {/* <div className="flex justify-between">
                 <span>Contributors</span>
                 <span>{Object.keys(contributors).length}</span>
-              </div>
+              </div> */}
             </div>
 
           </div>
