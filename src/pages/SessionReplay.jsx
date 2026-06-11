@@ -332,11 +332,7 @@ function SessionReplay() {
             {/* Timeline */}
             <div className="mt-10">
 
-              <input
-                type="range"
-                min="0"
-                max={frames.length - 1}
-                value={currentFrame}
+              <input type="range" min="0" max={frames.length - 1} value={currentFrame}
                 onChange={(e) => {
                   setIsPlaying(false)
                   setCurrentFrame(Number(e.target.value))

@@ -346,7 +346,6 @@ function WorkSpace() {
               }}
 
               onPaste={(e) => {
-
                 sourceRef.current = "paste"
                 hasChangedRef.current = true
 
