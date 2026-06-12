@@ -10,7 +10,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useRef } from "react"
 import Chat from '../components/chat';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
-import { getRoomCodeAPI, saveRoomCodeAPI } from '../services/allAPI';
+import { deleteRoomAPI, getRoomCodeAPI, saveRoomCodeAPI } from '../services/allAPI';
 import AIAssistant from '../components/AIAssistant';
 
 
@@ -21,6 +21,7 @@ function WorkSpace() {
   const [js, setJs] = useState("")
   const isEmpty = !html && !css && !js
   const [isLoaded, setIsLoaded] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const navigate = useNavigate()
   const location = useLocation()
@@ -129,28 +130,20 @@ function WorkSpace() {
         )
       }
     })
-
     socketRef.current.on("receive-code", (data) => {
-
       console.log("received code")
-
       setHtml(data.html)
       setCss(data.css)
       setJs(data.js)
-
     })
-
     socketRef.current.on("receive-message", (data) => {
-
       console.log("received in workspace", data)
-
       setMessageHistory((prev) => [
         ...prev,
         data
       ])
 
     })
-
     return () => {
       socketRef.current.off("user-joined")
       socketRef.current.off("user-left")
@@ -158,28 +151,19 @@ function WorkSpace() {
       socketRef.current.off("receive-code")
       socketRef.current.off("receive-message")
       socketRef.current.disconnect()
-
     }
-
-
-
   }, [roomId])
 
   useEffect(() => {
-
     const token =
       localStorage.getItem("token")
-
     if (!token) {
-
       navigate('/auth', {
         state: {
           from: location.pathname
         }
       })
-
     }
-
   }, [navigate, location])
 
   useEffect(() => {
@@ -195,41 +179,24 @@ function WorkSpace() {
   }, [html, css, js, isLoaded])
 
   useEffect(() => {
-
     if (!isLoaded) return
-
     const interval = setInterval(() => {
-
       if (!hasChangedRef.current) return
-
       const username = localStorage.getItem("username")
-
       socketRef.current?.emit("save-frame", {
-
         roomId,
-
         userId: username,
-
         username,
-
         html: htmlRef.current,
-
         css: cssRef.current,
-
         js: jsRef.current,
         source: sourceRef.current
-
       })
-
       console.log("FRAME SAVED")
-
       hasChangedRef.current = false
       sourceRef.current = "manual"
-
     }, 5000)
-
     return () => clearInterval(interval)
-
   }, [roomId, isLoaded])
 
   const loadRoomCode = async () => {
@@ -270,10 +237,50 @@ function WorkSpace() {
   </html>
 `
 
+  const handleDelete = async () => {
+    try {
+      const result = await deleteRoomAPI(roomId)
+      if (result.status == 200) {
+        toast.success("Room deleted successfully")
+        navigate('/')
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <>
       <WorkSpaceHeader onlineUsers={onlineUsers} />
+
+      {
+        showDeleteModal && (
+          <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-xl w-[350px]">
+              <h2 className="text-xl font-semibold mb-4">
+                Delete Room
+              </h2>
+              <p className="text-gray-500 mb-6">
+                Are you sure you want to delete this room?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
       <div className={`flex flex-col lg:flex-row transition-all duration-300 ${showAI ? "lg:mr-[350px]" : ""
         }`}>
@@ -410,14 +417,8 @@ function WorkSpace() {
             </div>
 
             <div className='flex items-center gap-3 text-gray-400'>
-              <button
-                onClick={() => navigate(`/session-replay/${roomId}`)}
-                className="rounded-lg"
-              >
-                ▶ Replay Session
-              </button>
+              <button onClick={() => navigate(`/session-replay/${roomId}`)} className="rounded-lg">▶ Replay Session</button>
               <TbReload onClick={runCode} className="cursor-pointer hover:text-black" />
-              {/* <button onClick={saveCode}><IoIosSave className="cursor-pointer hover:text-black" /></button> */}
               <button className='me-2'
                 onClick={() => {
                   console.log("AI CLICKED")
@@ -425,6 +426,12 @@ function WorkSpace() {
                 }}
               >
                 🤖
+              </button>
+              <button
+                onClick={()=>setShowDeleteModal(true)}
+                className="text-red-500 font-semibold"
+              >
+                🗑 Delete Room
               </button>
             </div>
           </div>
@@ -467,10 +474,10 @@ function WorkSpace() {
       overflow-hidden
       z-50
     ">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef}/>
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} />
               </div>
               <div className="md:hidden fixed bottom-0 left-0 right-0 h-[55vh] bg-white rounded-t-2xl shadow-2xl z-50">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef}/>
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} />
               </div>
             </>
           )

@@ -31,3 +31,8 @@ export const generateCodeAPI = async (reqBody) => {
 export const getReplayFramesAPI = async (roomId) => {
     return await commonAPI("GET",`${baseUrl}/replay/${roomId}`,"",{})
 }
+
+// delete room 
+export const deleteRoomAPI=async(roomId)=>{
+    return await commonAPI("DELETE",`${baseUrl}/delete-room/${roomId}`,"",{})
+}
