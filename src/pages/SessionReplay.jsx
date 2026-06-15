@@ -3,7 +3,8 @@ import axios from "axios"
 import { useParams } from "react-router-dom"
 import { useEffect } from "react"
 import { getReplayFramesAPI } from "../services/allAPI";
-
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism"
 
 function SessionReplay() {
 
@@ -95,6 +96,13 @@ function SessionReplay() {
 
   const currentFrameData = frames[currentFrame]
 
+  const borderColor =
+    currentFrameData?.source === "manual"
+      ? "#3b82f6"
+      : currentFrameData?.source === "ai"
+        ? "#a855f7"
+        : "#eab308"
+
   //started time 
   const firstRealFrame =
     frames.find(frame => frame.timestamp)
@@ -136,6 +144,13 @@ function SessionReplay() {
         ? currentCode.css
         : currentCode.js
 
+  const currentLanguage =
+    activeTab === "html"
+      ? "html"
+      : activeTab === "css"
+        ? "css"
+        : "javascript"
+
   const lineCount =
     currentContent
       ? currentContent.split("\n").length
@@ -171,7 +186,7 @@ function SessionReplay() {
       <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-5">
         <div>
           <div className="flex flex-wrap items-center gap-4">
-            <img src="/IDE-LOGO.png" alt="" width={'200px'} height={'100px'}/>
+            <img src="/IDE-LOGO.png" alt="" width={'200px'} height={'100px'} />
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold"> Session Replay</h1>
             <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold">
               ● Replay Ready
@@ -238,6 +253,25 @@ function SessionReplay() {
             </div>
 
             {/* Editor */}
+            <div className="mb-3">
+              {currentFrameData?.source === "manual" &&
+                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                  ⌨️ Manual Typing
+                </span>
+              }
+
+              {currentFrameData?.source === "ai" &&
+                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
+                  🤖 AI Generated
+                </span>
+              }
+
+              {currentFrameData?.source === "paste" &&
+                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
+                  📋 Pasted Code
+                </span>
+              }
+            </div>
             <div className="h-[650px] flex overflow-hidden">
               {/* Line Numbers */}
               <div className="bg-[#252526] w-16 text-gray-500 p-5 font-mono text-sm">
@@ -249,16 +283,24 @@ function SessionReplay() {
               </div>
 
               {/* Code */}
-              <textarea ref={editorRef} spellCheck={false}
-                readOnly
-                value={
-                  activeTab === "html"
-                    ? currentCode.html
-                    : activeTab === "css"
-                      ? currentCode.css
-                      : currentCode.js
-                }
-                className="flex-1 bg-[#1e1e1e] text-white p-5 outline-none resize-none font-mono text-sm overflow-y-auto" />
+              <div
+                ref={editorRef}
+                className="flex-1 overflow-y-auto"
+              >
+                <SyntaxHighlighter
+                  language={currentLanguage}
+                  style={vscDarkPlus}
+                  customStyle={{
+                    background: "#1e1e1e",
+                    margin: 0,
+                    minHeight: "650px",
+                    borderLeft: `6px solid ${borderColor}`
+                  }}
+                  showLineNumbers={false}
+                >
+                  {currentContent}
+                </SyntaxHighlighter>
+              </div>
             </div>
           </div>
 
