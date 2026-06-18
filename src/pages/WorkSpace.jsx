@@ -42,6 +42,10 @@ function WorkSpace() {
   const [cssCursor, setCssCursor] = useState(0)
   const [jsCursor, setJsCursor] = useState(0)
 
+  const htmlLinesRef = useRef([])
+  const cssLinesRef = useRef([])
+  const jsLinesRef = useRef([])
+
   const runCode = () => {
     setPreviewHtml(html)
     setPreviewCss(css)
@@ -73,24 +77,17 @@ function WorkSpace() {
   }, [js])
 
   useEffect(() => {
-
     const username = localStorage.getItem("username")
     if (!username) return
     socketRef.current = io(baseUrl)
-
     socketRef.current.on("connect", () => {
-
       console.log("TEST FRAME EMITTED")
-
       console.log("socket connected")
       socketRef.current.emit("join-room", {
         roomId,
         username
       })
-
     })
-
-
     // joined user
     socketRef.current.on("user-joined", (data) => {
       console.log(
@@ -190,7 +187,10 @@ function WorkSpace() {
         html: htmlRef.current,
         css: cssRef.current,
         js: jsRef.current,
-        source: sourceRef.current
+        source: sourceRef.current,
+        htmlLines: htmlLinesRef.current,
+        cssLines: cssLinesRef.current,
+        jsLines: jsLinesRef.current
       })
       console.log("FRAME SAVED")
       hasChangedRef.current = false
@@ -248,6 +248,8 @@ function WorkSpace() {
       console.log(error);
     }
   }
+
+
 
   return (
     <>
@@ -355,11 +357,11 @@ function WorkSpace() {
               onPaste={(e) => {
                 sourceRef.current = "paste"
                 hasChangedRef.current = true
-
               }}
 
               onChange={(e) => {
                 const value = e.target.value
+                const lines = value.split("\n")
 
                 let updatedHtml = html
                 let updatedCss = css
@@ -368,14 +370,41 @@ function WorkSpace() {
                 if (activeTab === "html") {
                   updatedHtml = value
                   setHtml(value)
+                  htmlLinesRef.current =
+                    value
+                      .split("\n")
+                      .map((line, index) => ({
+                        line,
+                        source:
+                          htmlLinesRef.current[index]?.source ||
+                          sourceRef.current
+                      }))
                 }
                 else if (activeTab === "css") {
                   updatedCss = value
                   setCss(value)
+                  cssLinesRef.current =
+                    value
+                      .split("\n")
+                      .map((line, index) => ({
+                        line,
+                        source:
+                          cssLinesRef.current[index]?.source ||
+                          sourceRef.current
+                      }))
                 }
                 else {
                   updatedJs = value
                   setJs(value)
+                  jsLinesRef.current =
+                    value
+                      .split("\n")
+                      .map((line, index) => ({
+                        line,
+                        source:
+                          jsLinesRef.current[index]?.source ||
+                          sourceRef.current
+                      }))
                 }
                 console.log("emitting code")
                 if (sourceRef.current !== "paste") {
@@ -428,7 +457,7 @@ function WorkSpace() {
                 🤖
               </button>
               <button
-                onClick={()=>setShowDeleteModal(true)}
+                onClick={() => setShowDeleteModal(true)}
                 className="text-red-500 font-semibold"
               >
                 🗑 Delete Room
@@ -474,10 +503,10 @@ function WorkSpace() {
       overflow-hidden
       z-50
     ">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} />
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} htmlLinesRef={htmlLinesRef} cssLinesRef={cssLinesRef} jsLinesRef={jsLinesRef} />
               </div>
               <div className="md:hidden fixed bottom-0 left-0 right-0 h-[55vh] bg-white rounded-t-2xl shadow-2xl z-50">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} />
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} htmlLinesRef={htmlLinesRef} cssLinesRef={cssLinesRef} jsLinesRef={jsLinesRef}/>
               </div>
             </>
           )

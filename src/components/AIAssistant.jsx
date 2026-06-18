@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { generateCodeAPI } from '../services/allAPI'
 
 
-function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html, css, js, htmlCursor, cssCursor, jsCursor, activeTab, sourceRef, hasChangedRef }) {
+function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html, css, js, htmlCursor, cssCursor, jsCursor, activeTab, sourceRef, hasChangedRef, htmlLinesRef, cssLinesRef, jsLinesRef }) {
 
     const [prompt, setPrompt] = useState("")
     const [response, setResponse] = useState("")
@@ -36,7 +36,6 @@ function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html,
             response.match(
                 /<body[^>]*>([\s\S]*)<\/body>/i
             )
-
         const newHtml =
             (
                 htmlMatch
@@ -116,6 +115,48 @@ function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html,
                 :
                 js + "\n" + newJs
 
+        if (newHtml) {
+            const aiHtmlLines =
+                newHtml
+                    .split("\n")
+                    .map(line => ({
+                        line,
+                        source: "ai"
+                    }))
+            htmlLinesRef.current = [
+                ...htmlLinesRef.current,
+                ...aiHtmlLines
+            ]
+        }
+        if (newCss) {
+            const aiCssLines =
+                newCss
+                    .split("\n")
+                    .map(line => ({
+                        line,
+                        source: "ai"
+                    }))
+            cssLinesRef.current = [
+                ...cssLinesRef.current,
+                ...aiCssLines
+            ]
+        }
+        if (newJs) {
+            const aiJsLines =
+                newJs
+                    .split("\n")
+                    .map(line => ({
+                        line,
+                        source: "ai"
+                    }))
+            jsLinesRef.current = [
+                ...jsLinesRef.current,
+                ...aiJsLines
+            ]
+        }
+
+        sourceRef.current = "ai"
+        hasChangedRef.current = true
         setHtml(updatedHtml)
         setCss(updatedCss)
         setJs(updatedJs)
@@ -128,8 +169,7 @@ function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html,
                 js: updatedJs
             }
         )
-        sourceRef.current = "ai"
-        hasChangedRef.current = true
+
     }
 
     return (

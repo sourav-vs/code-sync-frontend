@@ -96,6 +96,13 @@ function SessionReplay() {
 
   const currentFrameData = frames[currentFrame]
 
+  const lineSources =
+    activeTab === "html"
+      ? currentFrameData?.htmlLineSources || []
+      : activeTab === "css"
+        ? currentFrameData?.cssLineSources || []
+        : currentFrameData?.jsLineSources || []
+
   const borderColor =
     currentFrameData?.source === "manual"
       ? "#3b82f6"
@@ -287,19 +294,38 @@ function SessionReplay() {
                 ref={editorRef}
                 className="flex-1 overflow-y-auto"
               >
-                <SyntaxHighlighter
-                  language={currentLanguage}
-                  style={vscDarkPlus}
-                  customStyle={{
-                    background: "#1e1e1e",
-                    margin: 0,
-                    minHeight: "650px",
-                    borderLeft: `6px solid ${borderColor}`
-                  }}
-                  showLineNumbers={false}
-                >
-                  {currentContent}
-                </SyntaxHighlighter>
+                <div className="bg-[#1e1e1e] min-h-[650px] p-4 overflow-auto font-mono text-sm">
+                  {
+                    currentContent.split("\n").map((line, index) => (
+                      <div
+                        key={index}
+                        className="flex"
+                      >
+                        <div
+                          className={`w-2 mr-3 rounded-sm ${lineSources[index] === "manual"
+                              ? "bg-blue-500"
+                              : lineSources[index] === "ai"
+                                ? "bg-purple-500"
+                                : "bg-yellow-500"
+                            }`}
+                        ></div>
+
+                        <SyntaxHighlighter
+                          language={currentLanguage}
+                          style={vscDarkPlus}
+                          customStyle={{
+                            background: "#1e1e1e",
+                            margin: 0,
+                            padding: 0
+                          }}
+                        >
+                          {line || " "}
+                        </SyntaxHighlighter>
+
+                      </div>
+                    ))
+                  }
+                </div>
               </div>
             </div>
           </div>
