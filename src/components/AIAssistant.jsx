@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { generateCodeAPI } from '../services/allAPI'
 
 
-function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html, css, js, htmlCursor, cssCursor, jsCursor, activeTab, sourceRef, hasChangedRef, htmlLinesRef, cssLinesRef, jsLinesRef }) {
+function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html, css, js, htmlCursor, cssCursor, jsCursor, activeTab, sourceRef, hasChangedRef}) {
 
     const [prompt, setPrompt] = useState("")
     const [response, setResponse] = useState("")
@@ -114,46 +114,6 @@ function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html,
                 js.slice(0, jsCursor ?? js.length) + newJs + js.slice(jsCursor ?? js.length)
                 :
                 js + "\n" + newJs
-
-        if (newHtml) {
-            const aiHtmlLines =
-                newHtml
-                    .split("\n")
-                    .map(line => ({
-                        line,
-                        source: "ai"
-                    }))
-            htmlLinesRef.current = [
-                ...htmlLinesRef.current,
-                ...aiHtmlLines
-            ]
-        }
-        if (newCss) {
-            const aiCssLines =
-                newCss
-                    .split("\n")
-                    .map(line => ({
-                        line,
-                        source: "ai"
-                    }))
-            cssLinesRef.current = [
-                ...cssLinesRef.current,
-                ...aiCssLines
-            ]
-        }
-        if (newJs) {
-            const aiJsLines =
-                newJs
-                    .split("\n")
-                    .map(line => ({
-                        line,
-                        source: "ai"
-                    }))
-            jsLinesRef.current = [
-                ...jsLinesRef.current,
-                ...aiJsLines
-            ]
-        }
 
         sourceRef.current = "ai"
         hasChangedRef.current = true

@@ -96,13 +96,6 @@ function SessionReplay() {
 
   const currentFrameData = frames[currentFrame]
 
-  const lineSources =
-    activeTab === "html"
-      ? currentFrameData?.htmlLineSources || []
-      : activeTab === "css"
-        ? currentFrameData?.cssLineSources || []
-        : currentFrameData?.jsLineSources || []
-
   const borderColor =
     currentFrameData?.source === "manual"
       ? "#3b82f6"
@@ -259,26 +252,6 @@ function SessionReplay() {
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
             </div>
 
-            {/* Editor */}
-            <div className="mb-3">
-              {currentFrameData?.source === "manual" &&
-                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                  ⌨️ Manual Typing
-                </span>
-              }
-
-              {currentFrameData?.source === "ai" &&
-                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
-                  🤖 AI Generated
-                </span>
-              }
-
-              {currentFrameData?.source === "paste" &&
-                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
-                  📋 Pasted Code
-                </span>
-              }
-            </div>
             <div className="h-[650px] flex overflow-hidden">
               {/* Line Numbers */}
               <div className="bg-[#252526] w-16 text-gray-500 p-5 font-mono text-sm">
@@ -301,14 +274,6 @@ function SessionReplay() {
                         key={index}
                         className="flex"
                       >
-                        <div
-                          className={`w-2 mr-3 rounded-sm ${lineSources[index] === "manual"
-                              ? "bg-blue-500"
-                              : lineSources[index] === "ai"
-                                ? "bg-purple-500"
-                                : "bg-yellow-500"
-                            }`}
-                        ></div>
 
                         <SyntaxHighlighter
                           language={currentLanguage}

@@ -12,7 +12,7 @@ import Chat from '../components/chat';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import { deleteRoomAPI, getRoomCodeAPI, saveRoomCodeAPI } from '../services/allAPI';
 import AIAssistant from '../components/AIAssistant';
-
+import Editor from "@monaco-editor/react";
 
 function WorkSpace() {
   const [activeTab, setActiveTab] = useState("html")
@@ -41,10 +41,6 @@ function WorkSpace() {
   const [htmlCursor, setHtmlCursor] = useState(0)
   const [cssCursor, setCssCursor] = useState(0)
   const [jsCursor, setJsCursor] = useState(0)
-
-  const htmlLinesRef = useRef([])
-  const cssLinesRef = useRef([])
-  const jsLinesRef = useRef([])
 
   const runCode = () => {
     setPreviewHtml(html)
@@ -187,10 +183,7 @@ function WorkSpace() {
         html: htmlRef.current,
         css: cssRef.current,
         js: jsRef.current,
-        source: sourceRef.current,
-        htmlLines: htmlLinesRef.current,
-        cssLines: cssLinesRef.current,
-        jsLines: jsLinesRef.current
+        source: sourceRef.current
       })
       console.log("FRAME SAVED")
       hasChangedRef.current = false
@@ -327,105 +320,138 @@ function WorkSpace() {
           {/* Editor */}
 
           <div className="flex-1 gap-3">
-            <textarea ref={editorRef}
-              className="w-full h-[50vh] md:h-[80vh] border border-gray-700 shadow-md p-4 rounded-md text-sm outline-none focus:ring-2 focus:ring-gray-600"
+            <Editor
+              height="80vh"
+              theme="vs-dark"
+              language={
+                activeTab === "html"
+                  ? "html"
+                  : activeTab === "css"
+                    ? "css"
+                    : "javascript"
+              }
 
-              value={activeTab == "html" ? html : activeTab == "css" ? css : js}
+              value={
+                activeTab === "html"
+                  ? html
+                  : activeTab === "css"
+                    ? css
+                    : js
+              }
 
-              onClick={(e) => {
-                if (activeTab === "html")
-                  setHtmlCursor(e.target.selectionStart)
+              onMount={(editor) => {
 
-                else if (activeTab === "css")
-                  setCssCursor(e.target.selectionStart)
+                editorRef.current = editor
 
-                else
-                  setJsCursor(e.target.selectionStart)
+                // Cursor tracking
+                editor.onDidChangeCursorPosition((e) => {
+
+                  const offset =
+                    editor
+                      .getModel()
+                      .getOffsetAt(e.position)
+
+                  if (activeTab === "html")
+                    setHtmlCursor(offset)
+
+                  else if (activeTab === "css")
+                    setCssCursor(offset)
+
+                  else
+                    setJsCursor(offset)
+
+                })
+
+                // Detect paste
+                editor.onDidPaste(() => {
+
+                  sourceRef.current = "paste"
+
+                  hasChangedRef.current = true
+
+                  console.log("PASTE DETECTED")
+
+                })
+
               }}
 
-              onKeyUp={(e) => {
-                if (activeTab === "html")
-                  setHtmlCursor(e.target.selectionStart)
-
-                else if (activeTab === "css")
-                  setCssCursor(e.target.selectionStart)
-
-                else
-                  setJsCursor(e.target.selectionStart)
-              }}
-
-              onPaste={(e) => {
-                sourceRef.current = "paste"
-                hasChangedRef.current = true
-              }}
-
-              onChange={(e) => {
-                const value = e.target.value
-                const lines = value.split("\n")
+              onChange={(value) => {
 
                 let updatedHtml = html
                 let updatedCss = css
                 let updatedJs = js
 
-                if (activeTab === "html") {
-                  updatedHtml = value
-                  setHtml(value)
-                  htmlLinesRef.current =
-                    value
-                      .split("\n")
-                      .map((line, index) => ({
-                        line,
-                        source:
-                          htmlLinesRef.current[index]?.source ||
-                          sourceRef.current
-                      }))
-                }
-                else if (activeTab === "css") {
-                  updatedCss = value
-                  setCss(value)
-                  cssLinesRef.current =
-                    value
-                      .split("\n")
-                      .map((line, index) => ({
-                        line,
-                        source:
-                          cssLinesRef.current[index]?.source ||
-                          sourceRef.current
-                      }))
-                }
-                else {
-                  updatedJs = value
-                  setJs(value)
-                  jsLinesRef.current =
-                    value
-                      .split("\n")
-                      .map((line, index) => ({
-                        line,
-                        source:
-                          jsLinesRef.current[index]?.source ||
-                          sourceRef.current
-                      }))
-                }
-                console.log("emitting code")
-                if (sourceRef.current !== "paste") {
+                // If not paste or AI, assume manual typing
+                if (
+                  sourceRef.current !== "paste" &&
+                  sourceRef.current !== "ai"
+                ) {
                   sourceRef.current = "manual"
                 }
-                hasChangedRef.current = true
-                socketRef.current.emit("code-change", {
-                  roomId,
-                  html: updatedHtml,
-                  css: updatedCss,
-                  js: updatedJs
-                })
-              }}
-              placeholder={
-                activeTab === "html"
-                  ? "  Write HTML here..."
-                  : activeTab === "css"
-                    ? "  Write CSS here..."
-                    : "  Write JavaScript here..."
-              }
 
+                if (activeTab === "html") {
+
+                  updatedHtml = value || ""
+
+                  setHtml(updatedHtml)
+
+                }
+
+                else if (activeTab === "css") {
+
+                  updatedCss = value || ""
+
+                  setCss(updatedCss)
+
+                }
+
+                else {
+
+                  updatedJs = value || ""
+
+                  setJs(updatedJs)
+
+                }
+
+                hasChangedRef.current = true
+
+                socketRef.current.emit(
+                  "code-change",
+                  {
+                    roomId,
+                    html: updatedHtml,
+                    css: updatedCss,
+                    js: updatedJs
+                  }
+                )
+
+              }}
+
+              options={{
+                minimap: {
+                  enabled: true
+                },
+
+                fontSize: 14,
+
+                automaticLayout: true,
+
+                wordWrap: "on",
+
+                autoClosingBrackets: "always",
+
+                autoClosingQuotes: "always",
+
+                formatOnPaste: true,
+
+                formatOnType: true,
+
+                scrollBeyondLastLine: false,
+
+                padding: {
+                  top: 20
+                }
+              }}
             />
           </div>
 
@@ -503,10 +529,10 @@ function WorkSpace() {
       overflow-hidden
       z-50
     ">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} htmlLinesRef={htmlLinesRef} cssLinesRef={cssLinesRef} jsLinesRef={jsLinesRef} />
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} />
               </div>
               <div className="md:hidden fixed bottom-0 left-0 right-0 h-[55vh] bg-white rounded-t-2xl shadow-2xl z-50">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} htmlLinesRef={htmlLinesRef} cssLinesRef={cssLinesRef} jsLinesRef={jsLinesRef}/>
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} />
               </div>
             </>
           )
