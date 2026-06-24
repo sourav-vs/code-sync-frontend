@@ -7,6 +7,7 @@ import Auth from './pages/Auth'
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SessionReplay from './pages/SessionReplay'
+import NotFound from './pages/NotFound'
 
 function App() {
 
@@ -17,6 +18,7 @@ function App() {
         <Route path='/workspace/:roomId' element={<WorkSpace />} />
         <Route path='/auth' element={<Auth />} />
         <Route path='/session-replay/:roomId' element={<SessionReplay/>}/>
+        <Route path="/room-not-found" element={<NotFound />}/>
       </Routes>
        <ToastContainer
         position="top-right"

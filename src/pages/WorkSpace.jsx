@@ -37,10 +37,19 @@ function WorkSpace() {
   const [showAI, setShowAI] = useState(false)
 
   const editorRef = useRef(null)
+  const activityRef = useRef([])
 
   const [htmlCursor, setHtmlCursor] = useState(0)
   const [cssCursor, setCssCursor] = useState(0)
   const [jsCursor, setJsCursor] = useState(0)
+
+  const [deleteCountdown, setDeleteCountdown] = useState(null)
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false)
+  const [deleteRequester, setDeleteRequester] = useState(false)
+  const [checkingRoom, setCheckingRoom] = useState(true)
+
+  const lastManualLineRef = useRef(null)
+  const previousLineCountRef = useRef(0)
 
   const runCode = () => {
     setPreviewHtml(html)
@@ -57,9 +66,6 @@ function WorkSpace() {
   const sourceRef = useRef("manual")
 
   const { roomId } = useParams()
-
-  console.log(roomId)
-
   useEffect(() => {
     htmlRef.current = html
   }, [html])
@@ -137,12 +143,40 @@ function WorkSpace() {
       ])
 
     })
+    socketRef.current.on("delete-room-request", (data) => {
+      console.log("DELETE REQUEST RECEIVED FRONTEND")
+      setDeleteCountdown(data.countdown)
+      setShowDeleteWarning(true)
+      console.log(
+        "DELETE WARNING RECEIVED",
+        data
+      )
+      toast.warning(`${data.username} requested room deletion`)
+    }
+    )
+    socketRef.current.on("delete-room-cancelled", () => {
+      setShowDeleteWarning(false)
+      setDeleteCountdown(null)
+      setDeleteRequester(false)
+      toast.info("Room deletion cancelled")
+    }
+    )
+    socketRef.current.on("room-deleted", () => {
+      setShowDeleteWarning(false)
+      setDeleteCountdown(null)
+      setDeleteRequester(false)
+      toast.error("Room deleted")
+      navigate("/")
+    })
     return () => {
       socketRef.current.off("user-joined")
       socketRef.current.off("user-left")
       socketRef.current.off("online-users")
       socketRef.current.off("receive-code")
       socketRef.current.off("receive-message")
+      socketRef.current.off("delete-room-request")
+      socketRef.current.off("delete-room-cancelled")
+      socketRef.current.off("room-deleted")
       socketRef.current.disconnect()
     }
   }, [roomId])
@@ -176,6 +210,42 @@ function WorkSpace() {
     const interval = setInterval(() => {
       if (!hasChangedRef.current) return
       const username = localStorage.getItem("username")
+      // const previousLines =
+      //   previousLineCountRef.current
+
+      // const currentLines =
+      //   htmlRef.current.split("\n").length +
+      //   cssRef.current.split("\n").length +
+      //   jsRef.current.split("\n").length
+
+      // if (
+      //   sourceRef.current === "manual" &&
+      //   currentLines > previousLines
+      // ) {
+
+      //   activityRef.current.push({
+
+      //     source: "manual",
+
+      //     startLine:
+      //       previousLines + 1,
+
+      //     endLine:
+      //       currentLines,
+
+      //     lineCount:
+      //       currentLines -
+      //       previousLines,
+
+      //     timestamp:
+      //       Date.now()
+
+      //   })
+
+      // }
+
+      // previousLineCountRef.current =
+      //   currentLines
       socketRef.current?.emit("save-frame", {
         roomId,
         userId: username,
@@ -183,28 +253,63 @@ function WorkSpace() {
         html: htmlRef.current,
         css: cssRef.current,
         js: jsRef.current,
-        source: sourceRef.current
+        source: sourceRef.current,
+        activities: activityRef.current
       })
+
       console.log("FRAME SAVED")
+      console.log("SOURCE:", sourceRef.current)
+      console.log("ACTIVITIES:", activityRef.current)
+      activityRef.current = []
       hasChangedRef.current = false
       sourceRef.current = "manual"
     }, 5000)
     return () => clearInterval(interval)
   }, [roomId, isLoaded])
 
+  useEffect(() => {
+    if (!showDeleteWarning || deleteCountdown === null)
+      return
+    const timer =
+      setInterval(() => {
+        setDeleteCountdown(prev => {
+          if (prev <= 1) {
+            if (deleteRequester) {
+              socketRef.current.emit(
+                "confirm-delete-room",
+                { roomId }
+              )
+              setDeleteRequester(false)
+            }
+            setShowDeleteWarning(false)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    return () =>
+      clearInterval(timer)
+  }, [
+    showDeleteWarning,
+    deleteCountdown
+  ])
+
   const loadRoomCode = async () => {
     try {
       const result =
         await getRoomCodeAPI(roomId)
-      if (result.status === 200 && result.data) {
+      if (result.status === 404) {
+        navigate("/room-not-found")
+        return
+      }
+      if (result.status === 200) {
         setHtml(result.data.html || "")
         setCss(result.data.css || "")
         setJs(result.data.js || "")
+        setIsLoaded(true)
       }
-      setIsLoaded(true)
-    }
-    catch (err) {
-      console.log(err)
+    } finally {
+      setCheckingRoom(false)
     }
   }
 
@@ -230,19 +335,25 @@ function WorkSpace() {
   </html>
 `
 
-  const handleDelete = async () => {
-    try {
-      const result = await deleteRoomAPI(roomId)
-      if (result.status == 200) {
-        toast.success("Room deleted successfully")
-        navigate('/')
-      }
-    } catch (error) {
-      console.log(error);
-    }
+  const cancelDeletion = () => {
+    socketRef.current.emit("cancel-delete-room", { roomId }
+    )
   }
 
+  const startDeleteRequest = () => {
+    const username = localStorage.getItem("username")
+    socketRef.current.emit("delete-room-request", { roomId, username })
+    setDeleteRequester(true)
+    setShowDeleteModal(false)
+  }
 
+  if (checkingRoom) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -251,28 +362,71 @@ function WorkSpace() {
       {
         showDeleteModal && (
           <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+
             <div className="bg-white p-6 rounded-xl w-[350px]">
+
               <h2 className="text-xl font-semibold mb-4">
                 Delete Room
               </h2>
+
               <p className="text-gray-500 mb-6">
-                Are you sure you want to delete this room?
+                Start a room deletion request?
               </p>
+
               <div className="flex justify-end gap-3">
+
                 <button
                   onClick={() => setShowDeleteModal(false)}
                   className="px-4 py-2 bg-gray-200 rounded-lg"
                 >
                   Cancel
                 </button>
+
                 <button
-                  onClick={handleDelete}
+                  onClick={startDeleteRequest}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg"
                 >
-                  Delete
+                  Start Request
                 </button>
+
               </div>
+
             </div>
+
+          </div>
+        )
+      }
+
+      {
+        showDeleteWarning && (
+          <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+
+            <div className="bg-white p-6 rounded-xl w-[400px]">
+
+              <h2 className="text-xl font-semibold mb-4">
+                ⚠ Room Deletion Requested
+              </h2>
+
+              <p className="mb-4">
+                This room will be deleted in
+                <span className="font-bold text-red-500">
+                  {" "}{deleteCountdown}s
+                </span>
+              </p>
+
+              <p className="text-gray-500 mb-6">
+                Any member can cancel the deletion.
+              </p>
+
+              <button
+                onClick={cancelDeletion}
+                className="w-full bg-yellow-500 text-white py-2 rounded-lg"
+              >
+                Cancel Deletion
+              </button>
+
+            </div>
+
           </div>
         )
       }
@@ -364,23 +518,64 @@ function WorkSpace() {
 
                 // Detect paste
                 editor.onDidPaste(() => {
-
                   sourceRef.current = "paste"
 
                   hasChangedRef.current = true
 
-                  console.log("PASTE DETECTED")
+                  const startLine =
+                    editor.getPosition().lineNumber
 
+                  activityRef.current.push({
+                    source: "paste",
+                    startLine,
+                    endLine: startLine,
+                    lineCount: 1,
+                    timestamp: Date.now()
+                  })
                 })
 
               }}
 
               onChange={(value) => {
-
+                console.log(
+                  "CURSOR LINE:",
+                  editorRef.current?.getPosition()?.lineNumber
+                )
                 let updatedHtml = html
                 let updatedCss = css
                 let updatedJs = js
 
+                if (sourceRef.current === "manual") {
+
+                  const line =
+                    editorRef.current
+                      ?.getPosition()
+                      ?.lineNumber
+
+                  if (
+                    lastManualLineRef.current !== line
+                  ) {
+
+                    activityRef.current.push({
+
+                      source: "manual",
+
+                      startLine: line,
+
+                      endLine: line,
+
+                      lineCount: 1,
+
+                      timestamp: Date.now()
+
+                    })
+
+                    lastManualLineRef.current =
+                      line
+
+                  }
+
+                }
                 // If not paste or AI, assume manual typing
                 if (
                   sourceRef.current !== "paste" &&
@@ -390,27 +585,18 @@ function WorkSpace() {
                 }
 
                 if (activeTab === "html") {
-
                   updatedHtml = value || ""
-
                   setHtml(updatedHtml)
-
                 }
 
                 else if (activeTab === "css") {
-
                   updatedCss = value || ""
-
                   setCss(updatedCss)
-
                 }
 
                 else {
-
                   updatedJs = value || ""
-
                   setJs(updatedJs)
-
                 }
 
                 hasChangedRef.current = true
@@ -431,23 +617,14 @@ function WorkSpace() {
                 minimap: {
                   enabled: true
                 },
-
                 fontSize: 14,
-
                 automaticLayout: true,
-
                 wordWrap: "on",
-
                 autoClosingBrackets: "always",
-
                 autoClosingQuotes: "always",
-
                 formatOnPaste: true,
-
                 formatOnType: true,
-
                 scrollBeyondLastLine: false,
-
                 padding: {
                   top: 20
                 }
@@ -529,10 +706,10 @@ function WorkSpace() {
       overflow-hidden
       z-50
     ">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} />
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} activityRef={activityRef} />
               </div>
               <div className="md:hidden fixed bottom-0 left-0 right-0 h-[55vh] bg-white rounded-t-2xl shadow-2xl z-50">
-                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} />
+                <AIAssistant onClose={() => setShowAI(false)} setHtml={setHtml} setCss={setCss} setJs={setJs} socketRef={socketRef} roomId={roomId} html={html} css={css} js={js} htmlCursor={htmlCursor} cssCursor={cssCursor} jsCursor={jsCursor} activeTab={activeTab} sourceRef={sourceRef} hasChangedRef={hasChangedRef} activityRef={activityRef} />
               </div>
             </>
           )

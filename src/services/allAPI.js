@@ -12,6 +12,11 @@ export const loginAPI=async(reqBody)=>{
     return await commonAPI("POST",`${baseUrl}/login`,reqBody,{})
 }
 
+// create room API
+export const createRoomAPI = async (reqBody) => {
+  return await commonAPI("POST",`${baseUrl}/create-room`,reqBody,{})
+}
+
 // Save room code
 export const saveRoomCodeAPI = async (reqBody) => {
   return await commonAPI("POST",`${baseUrl}/room/save`,reqBody,{})

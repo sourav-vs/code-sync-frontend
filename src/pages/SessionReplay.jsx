@@ -18,6 +18,7 @@ function SessionReplay() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [speed, setSpeed] = useState(1000)
   const editorRef = useRef()
+  const activityRef = useRef([])
 
   useEffect(() => {
     if (!isPlaying) return
@@ -48,10 +49,7 @@ function SessionReplay() {
       pasteChars += frame.contributionSize || 0
 
   })
-  const totalContribution =
-    manualChars +
-    aiChars +
-    pasteChars
+  const totalContribution = manualChars + aiChars + pasteChars
 
   const manualPercentage =
     totalContribution ? ((manualChars / totalContribution) * 100).toFixed(1) : 0
@@ -162,6 +160,12 @@ function SessionReplay() {
       : 1
 
   const contributors = {}
+
+  const allActivities =
+    frames.flatMap(
+      frame =>
+        frame.activities || []
+    )
 
   frames.forEach(frame => {
     if (!frame.username) return
@@ -328,6 +332,57 @@ function SessionReplay() {
                 ))
               }
             </div>
+          </div>
+
+          {/* lines */}
+          <div className="mt-10">
+            <h2 className="font-semibold text-lg mb-4">
+              Activity Timeline
+            </h2>
+            {
+              allActivities.map(
+                (activity, index) => (
+
+                  <div
+                    key={index}
+                    className="
+            bg-gray-50
+            rounded-lg
+            p-3
+            mb-3
+          "
+                  >
+                    <p>
+
+                      {
+                        activity.source === "ai"
+                          ? "🤖 AI Inserted"
+                          : activity.source === "paste"
+                            ? "📋 Pasted"
+                            : "⌨️ Manual"
+                      }
+
+                    </p>
+
+                    <p>
+                      Lines
+                      {" "}
+                      {activity.startLine}
+                      -
+                      {activity.endLine}
+                    </p>
+
+                    <p>
+                      {activity.lineCount}
+                      {" "}
+                      lines
+                    </p>
+
+                  </div>
+
+                )
+              )
+            }
           </div>
         </div>
 

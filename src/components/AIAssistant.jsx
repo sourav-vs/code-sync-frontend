@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { generateCodeAPI } from '../services/allAPI'
 
 
-function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html, css, js, htmlCursor, cssCursor, jsCursor, activeTab, sourceRef, hasChangedRef}) {
+function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html, css, js, htmlCursor, cssCursor, jsCursor, activeTab, sourceRef, hasChangedRef, activityRef }) {
 
     const [prompt, setPrompt] = useState("")
     const [response, setResponse] = useState("")
@@ -76,15 +76,6 @@ function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html,
                 .map(match => match[1])
                 .join("\n\n")
 
-        // const newHtml =
-        //     htmlMatch ? htmlMatch[1] : response
-
-        // const newCss =
-        //     styleMatch ? styleMatch[1] : ""
-
-        // const newJs =
-        //     scriptMatch ? scriptMatch[1] : ""
-
         let updatedHtml = html
         let updatedCss = css
         let updatedJs = js
@@ -114,6 +105,77 @@ function AIAssistant({ onClose, setHtml, setCss, setJs, socketRef, roomId, html,
                 js.slice(0, jsCursor ?? js.length) + newJs + js.slice(jsCursor ?? js.length)
                 :
                 js + "\n" + newJs
+
+
+        let startLine = 1
+        let aiLineCount = 0
+
+        if (activeTab === "html") {
+
+            startLine =
+                html
+                    .slice(
+                        0,
+                        htmlCursor ?? html.length
+                    )
+                    .split("\n").length
+
+            aiLineCount =
+                newHtml
+                    .split("\n").length
+
+        }
+
+        else if (activeTab === "css") {
+
+            startLine =
+                css
+                    .slice(
+                        0,
+                        cssCursor ?? css.length
+                    )
+                    .split("\n").length
+
+            aiLineCount =
+                newCss
+                    .split("\n").length
+
+        }
+
+        else {
+
+            startLine =
+                js
+                    .slice(
+                        0,
+                        jsCursor ?? js.length
+                    )
+                    .split("\n").length
+
+            aiLineCount =
+                newJs
+                    .split("\n").length
+
+        }
+
+        activityRef.current.push({
+
+            source: "ai",
+
+            startLine,
+
+            endLine:
+                startLine +
+                aiLineCount -
+                1,
+
+            lineCount:
+                aiLineCount,
+
+            timestamp:
+                Date.now()
+
+        })
 
         sourceRef.current = "ai"
         hasChangedRef.current = true

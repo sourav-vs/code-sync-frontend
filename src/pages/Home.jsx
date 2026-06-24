@@ -10,30 +10,31 @@ import { useNavigate } from 'react-router-dom'
 import { ToastContainer, toast, Bounce } from 'react-toastify';
 import { useState } from 'react';
 import { useEffect } from 'react';
-
+import { createRoomAPI } from '../services/allAPI';
 
 function Home() {
   const navigate = useNavigate()
   const [roomId, setRoomId] = useState("")
 
 
-  const handleCreateRoom = () => {
-
-    const token = localStorage.getItem("token")
-
-    if (token) {
-
-      const roomId = crypto.randomUUID()
-
-      navigate(`/workspace/${roomId}`)
-
-    } else {
-
-      navigate('/auth')
-
-    }
-
+const handleCreateRoom = async () => {
+  const token = localStorage.getItem("token")
+  if (!token) {
+    navigate("/auth")
+    return
   }
+  try {
+    const roomId = crypto.randomUUID()
+    const result = await createRoomAPI({
+      roomId
+    })
+    if (result.status === 200) {
+      navigate(`/workspace/${roomId}`)
+    }
+  } catch (err) {
+    console.log(err)
+  }
+}
 
 
   const handleJoinRoom = () => {
